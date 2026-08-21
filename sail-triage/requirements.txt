@@ -1,3 +1,12 @@
+fastapi==0.141.1
+pydantic==2.13.4
+uvicorn==0.52.4
+sqlalchemy[asyncio]==2.0.52
+psycopg[binary]==3.3.4
+alembic==1.19.1
+pyjwt==2.13.0
+pwdlib[argon2]==0.3.1
 pytest==9.1.1
 black==26.5.1
 ruff==0.16.3
+
