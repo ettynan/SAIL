@@ -24,3 +24,11 @@ htmlcov/
 
 # Logs
 *.log
+
+# Python build and package artifacts
+*.egg-info/
+build/
+dist/
+
+# Type checking cache
+.mypy_cache/
