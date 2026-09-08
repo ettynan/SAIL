@@ -1,768 +1,343 @@
-```text
-Section 1: Introduction, purpose, hardware, design......................................................... 2
-SAIL Hardware............................................................................................................ 2
-SAIL Storage Design...................................................................................................2
-SAIL Network Design.................................................................................................. 3
-SAIL Operational Goals...............................................................................................3
+# SAIL — Security and AI Infrastructure Lab
+
+**A self-hosted infrastructure lab for DevOps, cybersecurity, observability, automation, and AI-assisted operations.**
+
+> SAIL provides a controlled environment for deploying realistic workloads, monitoring their behavior, generating operational and security events, investigating failures, and developing repeatable response workflows.
+
+## Overview
+
+SAIL (Security and AI Infrastructure Lab) is a self-hosted infrastructure and automation environment built on a three-node Raspberry Pi Kubernetes cluster.
+
+The project provides hands-on experience with:
+
+- Kubernetes administration and operations
+- Infrastructure monitoring and observability
+- Centralized logging and event collection
+- Runtime security monitoring
+- Vulnerability assessment
+- Infrastructure and configuration automation
+- Failure testing and recovery
+- Security-event investigation
+- AI-assisted operational and security analysis
+
+SAIL provides an environment where realistic infrastructure, application, and security activity can be generated and observed, supporting hands-on experience with monitoring, detection, investigation, troubleshooting, and remediation.
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TB
+    ADMIN["Administration Computer<br/>kubectl • Git • Automation • AI"]
+
+    subgraph CLUSTER["SAIL k3s Cluster"]
+        P1["pi-node-1<br/>Control Plane + Worker"]
+        P2["pi-node-2<br/>Worker"]
+        P3["pi-node-3<br/>Worker"]
+    end
+
+    SSD["1 TB External SSD<br/>NFS Persistent Storage"]
+    ORBIT["Orbit<br/>Application Workload"]
+    DB[("PostgreSQL")]
+
+    ADMIN --> CLUSTER
+
+    P1 --- P2
+    P2 --- P3
+
+    P1 --> SSD
+
+    CLUSTER --> ORBIT
+    ORBIT --> DB
 ```
 
-```text
-Section 2: Software choices and architecture decisions...................................................4
-Architecture Overview................................................................................................. 4
-```
+### Cluster
 
-```text
-Section 3: Operating system setup...................................................................................4
-Operating System Installation..................................................................................... 5
-Section 4: Physical setup and wiring................................................................................ 9
-Network Topology Diagram......................................................................................... 9
-Hardware Layout................................................................................................................... 10
-Hardware Wiring.................................................................................................................... 10
-Ethernet Cable Construction......................................................................................11
-Physical Environment Assembly............................................................................... 13
-Section 5: Network Configuration................................................................................................ 14
-Network Planning and IP Address Allocation............................................................ 14
-Planned DHCP Reservations.................................................................................... 15
-Reservation Verification.............................................................................................16
-Section 6: Kubernetes setup...........................................................................................16
-Kubernetes Installation..............................................................................................16
-Section 7: Monitoring and logging.................................................................................. 18
-Section 8: Security tooling.............................................................................................. 18
-Section 9: AI agent automation.......................................................................................18
-Section 10: Event Scenarios and Investigation Workflows............................................. 18
-```
+| System | Role |
+|---|---|
+| `pi-node-1` | k3s control plane, schedulable worker, NFS/SSD host |
+| `pi-node-2` | k3s worker |
+| `pi-node-3` | k3s worker |
+| Administration computer | Cluster administration, AI services, documentation, Git, and automation |
+| 1 TB external SSD | Persistent Kubernetes and operational storage |
+
+Persistent Kubernetes storage is provided through NFS from the external SSD attached to `pi-node-1`.
 
 ---
 
-# Section 1: Introduction, purpose, hardware, design
+## Orbit Application Workload
 
-SAIL, which stands for Security and AI Infrastructure Lab, is a self hosted infrastructure and automation environment designed to support hands-on learning in Dev Ops, cybersecurity, artificial intelligence, and systems operations. The environment uses Raspberry Pi systems and an Apple Silicon computer connected through a local home network to create a small scale computing environment where infrastructure, monitoring, automation, and AI related systems can be configured and operated together.
+SAIL includes **Orbit**, a Python/FastAPI social application that serves as the primary realistic application workload for the lab.
 
-The purpose of the environment is to provide hands-on experience with deployment, monitoring, troubleshooting, automation, logging, security tooling, and operational maintenance through the use of real hardware and locally hosted services. Multiple systems and services run across the shared network, including containerized applications, monitoring tools, log collection systems, AI related services, and automation workflows. The environment also allows operational failures, alert generation, troubleshooting activities, and recovery procedures to be tested and documented over time. All systems connect through a local wired home network using Ethernet connections. The environment runs on existing hardware using free and locally hosted software and services.
+Orbit provides activity that can be deployed, monitored, logged, investigated, secured, and automated throughout the rest of SAIL.
 
-## SAIL Hardware SAIL uses the following hardware:
+### Application Features
 
-### Device Purpose
+- User registration and authentication
+- User profiles and account management
+- User and administrative roles and permissions
+- Post creation, editing, deletion, and retrieval
+- Comments and reactions
+- Relationship categories based on relationship type or closeness
+- Relationship-based post visibility and authorization
+- Chronological user feeds
+- REST API and request validation
+- PostgreSQL persistence
+- Application and security-relevant logging
+- Health and application-status endpoints
+- Sustained automated user activity
 
-### Raspberry Pi 4 8GB x3 Kubernetes cluster nodes
+### Relationship-Based Authorization
 
-Mac Book Administration workstation, AI services, documentation, and
+Orbit's defining application feature is relationship-based content visibility.
 
-### automation tools
+Instead of treating every social connection identically, users can classify relationships according to type or closeness. These relationships influence which content another user is authorized to retrieve.
 
-### 1TB External SSD
+For example, content can be limited to audiences such as:
 
-> Persistent storage for cluster data, logs, metrics, backups, and
-> documentation assets
+- Close friends
+- Friends
+- Acquaintances
+- Work
+- Family
+- Specific groups
+- Everyone
 
-### Ethernet cables Network connectivity between systems
-
-Network switch Local wired network connection between devices
-
-## SAIL Storage Design
-
-```text
-SAIL uses a single 1TB external SSD as centralized storage for the environment. The
-storage drive connects to pi-node-1 and stores long term operational and project data generated
-by the environment.
-```
-
-The centralized storage supports:
-● Monitoring data
-● Logs
-● Kubernetes persistent storage
-● AI model files
-● Documentation
-
----
-
-● Screenshots and diagrams
-● Backup files
-● Project assets
-
-```text
-The Raspberry Pi systems maintain their own operating system storage while the external
-SSD attached to pi-node-1 stores larger persistent datasets and operational records
-generated by the environment.
-```
-
-## SAIL Network Design
-
-All SAIL systems operate on a local wired network inside the home environment. Each
-
-device connects through Ethernet to improve stability and simplify troubleshooting. The systems use the following names:
-
-### System
-
-### Role
-
-```text
-Mac Book Admin workstation, AI host, documentation, kubectl, Ansible, Git
-pi-node-1 k3s control plane, schedulable worker node, and external storage host
-pi-node-2 k3s worker
-pi-node-3 k3s worker
-```
-
-## SAIL Operational Goals
-
-The primary purpose of SAIL is to provide a controlled environment for developing and
-evaluating operational, security, and AI-assisted investigation workflows.
-The environment is intended to support:
-● Kubernetes administration and operations
-● Infrastructure monitoring and observability
-● Centralized logging and event collection
-● Runtime security monitoring
-● Vulnerability assessment
-● Configuration automation
-● Failure testing and recovery exercises
-● AI-assisted analysis of operational and security events
-● Hands-on Dev Ops and cybersecurity learning
-
-Rather than serving only as a Kubernetes cluster, SAIL functions as a platform for generating, detecting, investigating, and responding to infrastructure and security events. The environment allows operational failures, configuration issues, security alerts, and other events to be intentionally introduced and analyzed using monitoring, logging, security, and AI tooling.
+This creates authorization activity that is useful to SAIL beyond ordinary authentication. Relationship changes, visibility changes, denied requests, permission checks, and attempts to access content outside an authorized audience can all generate observable application and security events.
 
 ---
 
-```text
-The long-term objective is to develop repeatable workflows that demonstrate how modern
-infrastructure, security operations, and AI-assisted analysis can be combined within a
-self-hosted environment.
-```
+## Technology Stack
 
-# Section 2: Software choices and architecture decisions Technology Purpose Reason for Selection k3s Kubernetes cluster management
+| Area | Technologies |
+|---|---|
+| **Cluster** | Kubernetes, k3s, containerd |
+| **Storage** | NFS, ext4 |
+| **Application** | Python, FastAPI, Pydantic, Uvicorn |
+| **Database** | PostgreSQL, SQLAlchemy, psycopg, Alembic |
+| **Observability** | Prometheus, Grafana, Loki, OpenTelemetry |
+| **Security** | Falco, Trivy |
+| **Automation / IaC** | Ansible, Terraform / OpenTofu |
+| **AI** | Ollama, Open WebUI |
+| **Development & Testing** | Docker, pytest, Ruff, Black |
+| **Version Control** | Git, GitHub |
 
-Lightweight and well suited for Raspberry Pi systems
-
-### Ollama Local AI model hosting
-
-Runs AI models locally on Apple Silicon hardware
-
-Open Web UI AI web interface Browser based access to local AI models
-
-Prometheus Metrics collection Tracks system and service health Grafana Monitoring dashboards Visualizes metrics and operational data Loki Log collection Centralized log storage and searching Falco Runtime security monitoring
-
-Detects suspicious activity in containers and Linux systems
-
-### Trivy Vulnerability scanning
-
-Scans containers and configurations for known issues
-
-### Ansible System configuration automation
-
-> Reduces repetitive setup work across
-> systems
-
-Docker Container runtime Runs services in isolated environments Git Hub
-
-> Documentation and configuration Stores notes, configurations, diagrams, and
-> tracking troubleshooting records
-
-## Architecture Overview
-
-The environment is organized around a Kubernetes cluster running on three Raspberry Pi systems. One Raspberry Pi serves as the k3s control plane and also participates as a worker node, while the remaining Raspberry Pi systems serve as worker nodes. Kubernetes schedules workloads across the available cluster nodes based on resource availability and configuration. The Mac Book functions as an administration workstation and hosts AI related services, documentation assets, and management tools used to operate the environment. The environment uses a local wired network and centralized storage provided through an external SSD connected to pi-node-1. All services operate locally using existing hardware and free software.
-
-# Section 3: Operating system setup
-
-The SAIL environment will use Raspberry Pi OS Lite (64-bit) on all Raspberry Pi systems. Raspberry Pi OS was selected because it is the operating system maintained specifically for Raspberry Pi hardware and provides broad compatibility with the tools planned for the environment, including k3s, Prometheus, Grafana, Loki, Falco, Trivy, Docker, and Ansible.
+> **Note:** k3s uses `containerd` as the cluster container runtime. Docker is used for application image development and testing.
 
 ---
 
-## During the planning phase, alternative operating systems were evaluated, including Ubuntu Server. Both options appeared capable of supporting the planned architecture. Raspberry Pi OS was ultimately selected because the primary objective of SAIL is to provide a stable platform for infrastructure, security, monitoring, automation, and AI-assisted investigation workflows. As the operating system designed specifically for the hardware used in the project, Raspberry Pi OS offers strong hardware support, extensive community documentation, lower resource overhead, and broad compatibility with the planned software stack. Operating System Installation
+## SAIL Workloads
 
-The following are performed from a computer connected to the SAIL environment. Step 1: Download Raspberry Pi Imager
+SAIL is designed around several types of interacting workloads.
 
-1. Open a web browser. Navigate to: https://www.raspberrypi.com/software/
-2. Download Raspberry Pi Imager.
-3. Install the application.
-4. Launch Raspberry Pi Imager.
+### Application Workload
 
-### Step 2: Prepare the First Micro SD Card
+Orbit generates normal application activity including API requests, authentication, authorization, database operations, user activity, and application errors.
 
-1. Insert a Micro SD card into the computer.
-2. Verify the operating system detects the card before proceeding.
+### Security Workload
 
-![Page 5 image](images/page-005-image-01.png)
+Security tooling observes runtime behavior, application activity, vulnerabilities, authentication attempts, authorization failures, and intentionally generated security events.
 
-### Step 3: Select the Raspberry Pi Device
+### Automated and AI Workload
 
-1. Within Raspberry Pi Imager:
+Automation and locally hosted AI services support operational analysis, investigation, configuration management, and repeatable workflows.
 
-a. Select Device
-b. Select Raspberry Pi 4
-c. Choose NEXT
+### Operational Workload
 
-### Step 4: Select the Operating System
+Infrastructure activity includes deployments, configuration changes, resource consumption, service failures, storage operations, recovery procedures, and Kubernetes administration.
 
-1. Select Raspberry Pi OS (other)
+Together, these workloads allow SAIL to exercise the complete path from **activity → telemetry → detection → investigation → remediation**.
 
 ---
 
-2. Select Raspberry Pi OS Lite (64-bit)
+## Observability
 
-![Page 6 image](images/page-006-image-01.png)
+SAIL's observability environment is designed to provide visibility into the Raspberry Pi systems, Kubernetes cluster, containers, Orbit application, and PostgreSQL database.
 
-### Step 5: Select Storage
+| Tool | Purpose |
+|---|---|
+| **Prometheus** | Metrics collection |
+| **Grafana** | Dashboards and visualization |
+| **Loki** | Centralized log collection and searching |
+| **OpenTelemetry** | Application telemetry and tracing |
 
-1. Select the inserted Micro SD card
-
-![Page 6 image](images/page-006-image-02.png)
-
-Step 6: Configure Operating System Customization
-
-![Page 6 image](images/page-006-image-03.png)
-
-1. Enter Hostname: pi-node-1
-2. Enter Capital city, Time zone, and keyboard layout
-
-3. Username: <your username>
-
-![Page 6 image](images/page-006-image-04.png)
-
-4. Password: <your password>
+The project will establish a normal operating baseline that can be compared against intentionally generated failures and security events.
 
 ---
 
-![Page 7 image](images/page-007-image-01.png)
+## Security
 
-5. Click on Remote Access
-6. Enable: SSH
-7. Click writing, confirm settings and click WRITE
+SAIL incorporates security tooling directly into the operating environment rather than treating security as a separate exercise.
 
-![Page 7 image](images/page-007-image-02.png)
+| Tool | Purpose |
+|---|---|
+| **Falco** | Runtime behavior and threat detection |
+| **Trivy** | Container, configuration, and vulnerability scanning |
 
-![Page 7 image](images/page-007-image-03.png)
-
----
-
-### Step 7: Write the Image
-
-1. Wait for image creation and verification to complete.
-2. Label the Micro SD card: pi-node-1
-
-### Step 8: Create Remaining Node Images
-
-1. Repeat Steps 2 through 7.
-2. For the second card use: Hostname: pi-node-2
-3. For the third card use: Hostname: pi-node-3
-4. Label each completed Micro SD card.
-
-### Step 9: Install the Micro SD Cards
-
-1. Insert the appropriate Micro SD card into each Raspberry Pi.
-
-2. Verify that each Raspberry Pi receives the card matching its hostname.
-
-### Step 10: Boot the Cluster
-
-1. Verify:
-
-a. Ethernet cables are connected
-b. The SSD is connected to pi-node-1
-c. Power supplies are connected
-
-2. Apply power to the Raspberry Pi systems.
-3. Allow several minutes for the initial boot process to complete.
-
-![Page 8 image](images/page-008-image-01.png)
-
-### Step 11: Identify Assigned IP Addresses
-
-1. Log in to the router or gateway administration interface.
-
-2. Locate the Raspberry Pi systems in the connected devices list.
-3. Record for each node:
-
-a. Hostname
-b. MAC Address
-c. IP Address
-
-### Step 12: Verify SSH Connectivity
-
-1. Open a terminal on the computer.
-2. Connect to pi-node-1: ssh <username>@<ip-address>
-
-a. Example: ssh sailadmin@10.0.0.20
-
-3. When prompted: Are you sure you want to continue connecting (yes/no/[fingerprint])?
-
-a. Type: yes
-
-4. Enter the password configured during imaging.
-5. Verify a successful login.
-6. Repeat for pi-node-2 and pi-node-3.
-
-### Step 13: Update Raspberry Pi OS
+Orbit also generates application-level security activity through authentication attempts, authorization decisions, administrative operations, validation failures, relationship changes, visibility changes, and denied access attempts.
 
 ---
 
-1. Run: sudo apt update
+## Automation
 
-### sudo apt full-upgrade \-y
+Repetitive infrastructure and configuration tasks are automated where practical.
 
-2. Wait for updates to complete.
+SAIL uses:
 
-### Step 14: Reboot the Node
+- **Ansible** for system and configuration automation
+- **Terraform / OpenTofu** for infrastructure-as-code workflows
+- **Shell scripts** for environment and cluster setup tasks
 
-1. Run: sudo reboot
-2. Wait approximately one minute.
-3. Reconnect using SSH.
-4. Repeat Steps 13 and 14 on all three nodes.
-
-### Step 15: Verify Hostname Configuration
-
-1. Run: hostname
-2. Verify the hostname matches the intended node name.
-
-### Step 16: Verify Operating System Installation
-
-1. Run: cat /etc/os-release
-2. Verify that Raspberry Pi OS Lite (64-bit) is installed.
-
-### Step 17: Record Baseline System Information
-
-1. Run: free \-h
-2. Record available memory.
-3. Run: df \-h
-4. Record available storage. This information will be used later when evaluating cluster
-
-resource utilization and monitoring data.
-
-# Operating system installation is complete when: ● All three Raspberry Pi systems boot successfully ● SSH access is verified ● Operating system updates are installed ● Hostnames are configured correctly ● Network connectivity is verified ● Baseline system information has been recorded Section 4: Physical setup and wiring Network Topology Diagram
+Automation is intended to make configuration reproducible while preserving the hands-on administration and troubleshooting aspects of the lab.
 
 ---
 
-## Hardware Layout Physical Tower Layout
+## AI-Assisted Operations
 
-*Top*
+SAIL includes locally hosted AI services using **Ollama** and **Open WebUI**.
 
-Netgear GS105E ┌─────────────────────┐ │ pi-node-1 │ ├─────────────────────┤ │ pi-node-2 │ ├─────────────────────┤ │ pi-node-3 │ ├─────────────────────┤ │ SSD hard drive | |Anker Charger │ └─────────────────────┘
+AI-assisted workflows are intended to operate on information generated within the lab, including:
 
-### Bottom
+- Logs
+- Alerts
+- Metrics
+- Application behavior
+- Infrastructure events
+- Security findings
+- Troubleshooting information
 
-![Page 10 image](images/page-010-image-01.png)
-
-Rear ┌─────────────────────┐ │ Fan 1 │ ├─────────────────────┤ │ Fan 2 │ └─────────────────────┘
-
-## Hardware Wiring Ethernet Wiring
-
-### Home Router
+The goal is to evaluate how AI-assisted analysis can support operational and security investigation while keeping the environment locally hosted.
 
 ---
 
-> │
-> Cat 6 Cable
-> │
-> ▼
+## Persistent Storage
 
-> ┌────────────────┐
-> │ GS105E (Top of Tower)     │
-> │                       │
-> │ Port 1 ──► Router │
-> │ Port 2 ──► pi-node-1 │
-> │ Port 3 ──► pi-node-2 │
-> │ Port 4 ──► pi-node-3 │
-> │ Port 5 ──► Available │
-> └────────────────┘
+The Kubernetes cluster uses a centralized **1 TB external SSD** attached to `pi-node-1`.
 
-### Power Wiring
-
-### Anker Charger
+The SSD is formatted as `ext4` and exposed to the cluster through NFS.
 
 ```text
-USB-C #1 ─────────────► pi-node-1
-USB-C #2 ─────────────► pi-node-2
-USB-C #3 ─────────────► pi-node-3
-pi-node-1 USB 3.0 ────► 1TB SSD
+pi-node-1
+└── /mnt/sail-storage
+    └── kubernetes
 ```
+
+Kubernetes dynamically provisions persistent volumes through the NFS CSI driver using the `sail-nfs` StorageClass.
+
+---
+
+## Repository Structure
 
 ```text
-Fan 1
-Red ────────────────► pi-node-1 GPIO Pin 4
-Black───────────────► pi-node-1 GPIO Pin 6
-Fan 2
-Red ────────────────► pi-node-3 GPIO Pin 4
-Black───────────────► pi-node-3 GPIO Pin 6
+SAIL/
+├── sail-orbit/          # Orbit application
+├── setup_scripts/       # Environment and cluster setup automation
+├── kubernetes/          # Kubernetes manifests and configuration
+├── documentation/       # Detailed project documentation and supporting assets
+└── README.md            # Project overview
 ```
 
-## Ethernet Cable Construction
-
-The SAIL environment uses custom Ethernet cables to connect the Raspberry Pi cluster nodes, network switch, and administrative workstation. Building custom cables allows cable lengths to be matched to the physical layout of the environment while providing hands-on experience with basic network infrastructure.
-
-### Materials
+> Repository structure may expand as monitoring, security, automation, and AI components are implemented.
 
 ---
 
-● Cat 5e or Cat 6 Ethernet cable
-● RJ45 connectors
-● RJ45 crimping tool
-● Cable stripper
-● Cable tester
-Step 1: Measure Cable Length
+## Project Status
 
-1. Measure the distance between the devices to be connected.
+### Infrastructure
 
-2. Add approximately 12 inches (30 cm) of extra cable to allow for routing and future
+- [x] Raspberry Pi hardware environment
+- [x] Wired network configuration
+- [x] Static cluster addressing
+- [x] External SSD configuration
+- [x] NFS shared storage
+- [x] Three-node k3s cluster
+- [x] Remote Kubernetes administration
+- [x] Kubernetes NFS CSI driver
+- [x] Persistent Kubernetes storage
 
-adjustments.
+### Orbit
 
-3. Cut the cable to the desired length.
+- [x] Local development environment
+- [x] PostgreSQL development database
+- [x] SQLAlchemy database connectivity
+- [x] Alembic migration configuration
+- [x] Initial user database model
+- [ ] Authentication and authorization
+- [ ] Posts, comments, and reactions
+- [ ] Relationship model
+- [ ] Relationship-based visibility
+- [ ] Automated workload generation
+- [ ] Container deployment to SAIL
 
-### Step 2: Strip the Cable Jacket
+### SAIL Operations
 
-1. Using the cable stripper, remove approximately 1 inch (2.5 cm) of the outer cable jacket
-
-from the end of the cable.
-
-2. Take care to avoid damaging the internal conductors.
-
-### Step 3: Arrange Conductors
-
-1. Untwist the wire pairs and arrange them according to the T568B standard:
-
-a. White/Orange
-b. Orange
-c. White/Green
-d. Blue
-e. White/Blue
-f. Green
-g. White/Brown
-h. Brown
-
-2. Flatten the conductors and place them in the correct order.
-
-### Step 4: Trim Conductors
-
-1. Hold the conductors firmly and trim them to an equal length approximately 0.5 inches
-
-(1.3 cm) from the cable jacket.
-
-### Step 5: Insert RJ45 Connector
-
-1. Insert the conductors into the RJ45 connector while maintaining the T568B wire order.
-
-2. Verify that all conductors reach the end of the connector and remain in the correct
-
-sequence.
-
-3. Verify that the cable jacket extends into the connector body.
-
-### Step 6: Crimp Connector
-
-1. Insert the connector into the crimping tool.
-2. Fully compress the crimping tool to secure the conductors and strain relief.
-
-### Step 7: Repeat for Opposite End
-
-1. Repeat Steps 2 through 6 using the same T568B wiring order.
-
-### Step 8: Test Cable
-
-1. Connect both ends of the cable to a cable tester.
-2. Verify continuity on all eight conductors.
-3. Replace and recrimp any connector that fails testing.
-
-### Verification
+- [ ] Monitoring and observability stack
+- [ ] Centralized logging
+- [ ] Runtime security monitoring
+- [ ] Vulnerability scanning
+- [ ] Infrastructure automation
+- [ ] AI-assisted operations
+- [ ] Failure and recovery scenarios
+- [ ] Security investigation scenarios
 
 ---
 
-1. Connect the completed cable between two network devices.
+## Documentation
 
-2. Verify link lights are present on both devices and confirm network connectivity.
+The README provides a high-level overview of SAIL.
 
-## Physical Environment Assembly Materials ● Raspberry Pi 4 (8GB) x3 ● Raspberry Pi tower or cluster case ● Micro SD cards ● 1TB external SSD ● Network switch ● Ethernet cable ● RJ45 connectors ● RJ45 crimping tool ● Cable tester ● Raspberry Pi power supplies Step 1: Prepare the Micro SD Cards
+Detailed project documentation is maintained separately and includes:
 
-1. Verify that the prepared and labeled Micro SD cards are available for installation.
+<details>
+<summary><strong>Documentation contents</strong></summary>
 
-2. Configure hostname, SSH, username/password, locale, etc.
+1. Introduction, purpose, hardware, and design
+2. Software choices and architecture decisions
+3. Operating system setup
+4. Physical setup and wiring
+5. Network and shared-storage configuration
+6. Kubernetes setup
+7. Workload design
+8. Application development and deployment
+9. Monitoring, logging, and observability
+10. Security and infrastructure automation
+11. AI-assisted operations and deployment automation
+12. Event scenarios and investigation workflows
 
-3. Label each card (pi-node-1, pi-node-2, pi-node-3).
+The documentation also contains the commands, configuration, verification steps, troubleshooting information, and setup scripts used to construct the environment.
 
-### Step 2: Install Storage Media
+</details>
 
-1. Insert the prepared Micro SD cards into the Raspberry Pi systems.
-
-2. Connect the 1TB external SSD to the node designated as pi-node-1.
-
-3. Verify that all storage devices are seated securely.
-
-### Step 3: Assemble the Raspberry Pi Tower
-
-1. Assemble the Raspberry Pi tower according to the Hardware Layout and Hardware
-
-Wiring diagrams in this section. Refer to the manufacturer's instructions only for the
-mechanical assembly of the tower.
-
-2. Install all Raspberry Pi systems into the tower.
-3. Install any supplied heatsinks, cooling fans, or mounting hardware.
-
-4. Verify that all components are mounted securely and that cooling components operate
-
-without obstruction.
-
-### Step 4: Construct Ethernet Cables
-
-1. Measure the required cable lengths based on the planned location of the tower and
-
-network switch.
-
-2. Add approximately 12 inches (30 cm) to each measurement to allow for cable routing
-
-and future adjustments.
-
-3. Construct and test Ethernet cables using the Ethernet Cable Construction procedure
-
-documented earlier in this section.
-
-4. Label cables as desired.
-
-### Step 5: Install Network Infrastructure
-
-1. Place the Raspberry Pi tower and network switch in their intended locations.
+**See the SAIL project PDF for the complete implementation and build documentation.**
 
 ---
 
-2. Connect all Raspberry Pi systems to the network switch.
-3. Connect the network switch to the local network.
-4. Verify that all network connections are fully seated.
+## Project Objective
 
-### Step 6: Connect Power
+The long-term objective of SAIL is to develop repeatable workflows demonstrating how modern infrastructure, application development, observability, cybersecurity, automation, and AI-assisted analysis can operate together within a self-hosted environment.
 
-1. Connect power supplies to the Raspberry Pi systems and network switch.
-
-2. Route cables to minimize strain on connectors and maintain airflow around equipment.
-
-### Step 7: Power On the Environment
-
-1. Apply power to the network switch and Raspberry Pi systems.
-
-2. Observe power indicators, network link lights, and cooling operation.
-
-3. Allow the systems to complete their initial startup sequence.
-
-### Step 8: Verify Physical Infrastructure
-
-Verify:
-● Raspberry Pi tower is assembled correctly
-● Storage devices are connected
-● Ethernet cables pass testing
-● Network link lights are active
-● Cooling components are operating
-● All systems receive power
-
-### Completion Criteria
-
-Physical environment assembly is complete when:
-● The Raspberry Pi tower is assembled
-● Storage devices are installed
-● Network cabling is connected and tested
-● Network connectivity is established
-● All systems power on successfully
-● The environment is ready for operating system installation
-
-## Section 5: Network Configuration Network Planning and IP Address Allocation Before configuring DHCP reservations, the local network configuration was reviewed to determine how the cluster nodes would be addressed and managed. Establishing an addressing plan early helps avoid conflicts with existing devices and simplifies SSH access, and cluster administration.
-
-The first step was identifying the address currently assigned to the system. A quick review of assigned addresses was performed using: ifconfig | grep "inet"
-
-Because multiple addresses were returned, the active network adapter was identified using: networksetup \-listallhardwareports After identifying the active network interface, its assigned address was obtained using: ipconfig getifaddr en0
-
-The resulting address was used to determine the address range used by the local network. Readers following this process should note the first three portions of the address, which typically indicate the local network range.
-
-Next, the default gateway was identified using: netstat \-nr | grep default
-
-The gateway address was entered into a web browser to access the router or gateway administration interface.
-
-Within the administration interface, the local network settings were reviewed to identify:
-● The gateway address
-● The subnet mask
-● The DHCP address range
-● Available IP reservation features
-
-The review confirmed that the gateway supported DHCP reservations. DHCP reservations allow specific devices to consistently receive the same IP address while still using DHCP for network configuration. This approach provides the convenience of DHCP while maintaining predictable addresses for cluster infrastructure. Based on the available address space, three addresses were selected and reserved for the Kubernetes nodes. Assigning predictable addresses simplifies administration, automation, and troubleshooting.
-
-## Planned DHCP Reservations
-
-To provide predictable node addresses for SSH access, cluster administration, Ansible automation, and troubleshooting, DHCP reservations will be configured on the local gateway.
+The finished environment is intended to support the complete operational cycle:
 
 ```text
-System Role Reserved IP
-pi-node-1 k3s control plane, worker, SSD host 10.0.0.20
-pi-node-2 k3s worker 10.0.0.21
-pi-node-3 k3s worker 10.0.0.22
+Deploy
+  ↓
+Operate
+  ↓
+Observe
+  ↓
+Detect
+  ↓
+Investigate
+  ↓
+Remediate
+  ↓
+Verify
 ```
 
-The reservations will be created through the gateway administration interface after the
-
-Raspberry Pi systems have been connected to the network and obtained initial DHCP leases. The reservation process consists of:
-
 ---
 
-1. Log in to the gateway administration interface.
-2. Navigate to Connected Devices.
-3. Select Add Device With Reserved IP.
-4. Identify the Raspberry Pi by hostname, MAC address, or current DHCP address
+## Status
 
-and select it from the device list.
+> **SAIL is under active development.**
 
-5. Assign the planned IP address.
-6. Save the configuration.
-7. Repeat for the remaining nodes.
-8. Reboot the Raspberry Pi systems or renew their DHCP leases.
-
-Once completed, the cluster nodes will consistently receive the same addresses whenever they reconnect to the network.
-
-## Reservation Verification
-
-After the DHCP reservations have been created, verify that the assignments were applied successfully.
-
-1. Log in to the gateway administration interface.
-2. Navigate to Connected Devices.
-3. Locate each Raspberry Pi in the device list.
-4. Confirm that the reported IP address matches the expected reservation.
-
-If any node displays a different address, reboot the node or renew its DHCP lease and verify the reservation configuration. Once verified, the cluster nodes will consistently receive the same addresses whenever they reconnect to the network.
-
-# Section 6: Kubernetes setup
-
-The SAIL environment uses k3s to provide Kubernetes orchestration across the Raspberry Pi cluster. k3s was selected because it is a lightweight Kubernetes distribution designed for environments with limited computing resources while maintaining compatibility with the standard Kubernetes APIs and tooling. This allows SAIL to provide a realistic Kubernetes environment using Raspberry Pi hardware without the overhead of a full Kubernetes installation. The cluster consists of one control plane node and two worker nodes. The control plane is hosted on pi-node-1, which also participates as a schedulable worker node. The remaining Raspberry Pi systems function as worker nodes that host workloads distributed by Kubernetes. This configuration provides a balance between efficient hardware utilization and a realistic multi-node cluster suitable for infrastructure management, monitoring, security testing, and AI-assisted operational analysis.
-
-## Kubernetes Installation
-
-The following procedures install k3s on the Raspberry Pi cluster and create the Kubernetes environment.
-
----
-
-### Step 1: Verify Network Connectivity
-
-1. Open a terminal on the computer.
-2. Verify that each Raspberry Pi is accessible using SSH: ssh <username>@10.0.0.20
-3. After successfully connecting, run: exit
-4. Repeat for: ssh <username>@10.0.0.21 and ssh <username>@10.0.0.22
-
-5. Resolve any connectivity issues before continuing.
-
-### Step 2: Install the k3s Control Plane
-
-1. Open a terminal on the computer.
-2. Connect topi-node-1: ssh <username>@10.0.0.20
-
-3. Run the following command: curl \-sf L https://get.k3s.io | sh \-
-
-4. Wait for the installation to complete before proceeding.
-
-### Step 3: Verify the Control Plane Installation
-
-1. While still connected to pi-node-1, run: sudo kubectl get nodes
-
-2. Verify that pi-node-1 reports a status of Ready.
-
-### Step 4: Retrieve the Cluster Join Token
-
-1. While still connected to pi-node-1, display the node join token.
-
-a. sudo cat /var/lib/rancher/k3s/server/node-token
-
-2. Copy the entire token.
-3. The token will be required when joining the worker nodes to the cluster.
-
-### Step 5: Install k3s on pi-node-2
-
-1. Disconnect frompi-node-1: exit
-2. Connect topi-node-2: ssh <username>@10.0.0.21
-
-3. Run: curl \-sf L https://get.k3s.io | K3S_URL=https://10.0.0.20: 6443 K3S_TOKEN=<node-token> sh \-
-
-4. Replace<node-token>with the token copied in Step 4.
-5. Wait for the installation to complete.
-
-### Step 6: Install k3s on pi-node-3
-
-1. Disconnect frompi-node-2: exit
-2. Connect topi-node-3: ssh <username>@10.0.0.22
-
-3. Run: curl \-sf L https://get.k3s.io | K3S_URL=https://10.0.0.20: 6443 K3S_TOKEN=<node-token> sh \-
-
-4. Replace<node-token>with the token copied in Step 4.
-5. Wait for the installation to complete.
-
-### Step 7: Verify Cluster Membership
-
-1. Disconnect frompi-node-3: exit
-2. Reconnect topi-node-1: ssh <username>@10.0.0.20
-3. Run: sudo kubectl get nodes
-4. Verify all three nodes report a status of Ready.
-
-### Example output:
-
-> NAME STATUS ROLES AGE
-> pi-node-1 Ready control-plane, master
-> pi-node-2 Ready <none>
-> pi-node-3 Ready <none>
-
-### Step 8: Verify Cluster Information
-
-1. Run: sudo kubectl cluster-info
-2. Verify that the Kubernetes API server is accessible.
-
----
-
-### Step 9: Verify Kubernetes System Pods
-
-1. Run: sudo kubectl get pods \--all-namespaces
-2. Verify that all Kubernetes system pods report a status of Runningor Completed.
-
-### Step 10: Deploy a Test Workload
-
-1. Create a test deployment: sudo kubectl create deployment nginx \--image=nginx
-
-2. Verify the deployment: sudo kubectl get deployments
-3. Verify the pod: sudo kubectl get pods \-o wide
-4. Confirm that the pod reaches the Runningstate.
-
-### Step 11: Create a Test Service
-
-1. Run: sudo kubectl expose deployment nginx \--port=80 \--type=Cluster IP
-2. Verify the service: sudo kubectl get services
-
-### Step 12: Remove the Test Workload
-
-1. Run: sudo kubectl delete service nginx
-
-### sudo kubectl delete deployment nginx
-
-2. Verify that the deployment and service have been removed.
-
-Completion Criteria
-The Kubernetes installation is complete when:
-● k3s is installed on all three Raspberry Pi systems.
-● All three nodes report a status of Ready.
-● Kubernetes system pods are healthy.
-● A test workload deploys successfully.
-● A Kubernetes service is created successfully.
-● The test deployment and service are removed successfully.
-● Baseline cluster information has been recorded.
-
-# Section 7: Monitoring and logging Section 8: Security tooling Section 9: AI agent automation Section 10: Event Scenarios and Investigation Workflows The purpose of this section is to document the operational and security scenarios used to validate the SAIL environment. Each scenario will include event generation, detection mechanisms, collected evidence, AI-assisted analysis, and remediation actions. Planned scenarios include:
-
-### Scenario Category
-
-### Worker node failure Infrastructure
-
-Pod crash loop Infrastructure Storage utilization threshold exceeded Infrastructure
-
----
-
-Unauthorized shell access to a container Security
-
-Deployment of a vulnerable container image Security Excessive resource consumption by a workload Security / Operations Unexpected process execution within a Security Service outage and recovery validation Operations
-
-### container
-
-### Each scenario will document:
-
-1. Event description
-2. Event generation method
-3. Detection mechanism
-4. Logs and metrics collected
-5. AI-generated analysis
-6. Investigation process
-7. Remediation actions
-8. Lessons learned
+The Kubernetes infrastructure and persistent-storage foundation are operational. Current development is focused on the Orbit application before progressing into observability, security tooling, automation, AI-assisted operations, and integrated investigation scenarios.

@@ -1,4 +1,4 @@
-"""User database model for Triage."""
+"""User database model for Orbit."""
 
 from datetime import datetime, timezone
 
@@ -9,7 +9,7 @@ from app.models import Base
 
 
 class User(Base):
-    """Represent a Triage user account."""
+    """Represent a Orbit user account."""
 
     # Name of the PostgreSQL table represented by this model.
     __tablename__ = "users"

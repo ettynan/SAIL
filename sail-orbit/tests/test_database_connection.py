@@ -1,4 +1,4 @@
-"""Verify Triage can connect to the configured database."""
+"""Verify Orbit can connect to the configured database."""
 
 from sqlalchemy import text
 
