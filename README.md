@@ -1,26 +1,27 @@
-# SAIL — Security and AI Infrastructure Lab
+# SAIL - Security and AI Infrastructure Lab
 
-**A self-hosted infrastructure lab for DevOps, cybersecurity, observability, automation, and AI-assisted operations.**
-
-> SAIL provides a controlled environment for deploying realistic workloads, monitoring their behavior, generating operational and security events, investigating failures, and developing repeatable response workflows.
-
-## Overview
+> [!NOTE]
+> **SAIL is a self-hosted infrastructure lab for DevOps, cybersecurity, observability, automation, and AI-assisted operations.**
 
 SAIL (Security and AI Infrastructure Lab) is a self-hosted infrastructure and automation environment built on a three-node Raspberry Pi Kubernetes cluster.
 
-The project provides hands-on experience with:
+It provides a controlled environment for deploying realistic workloads, observing their behavior, generating operational and security activity, and developing hands-on experience with monitoring, detection, investigation, troubleshooting, remediation, and automation.
 
-- Kubernetes administration and operations
-- Infrastructure monitoring and observability
-- Centralized logging and event collection
-- Runtime security monitoring
-- Vulnerability assessment
-- Infrastructure and configuration automation
-- Failure testing and recovery
-- Security-event investigation
-- AI-assisted operational and security analysis
+## Contents
 
-SAIL provides an environment where realistic infrastructure, application, and security activity can be generated and observed, supporting hands-on experience with monitoring, detection, investigation, troubleshooting, and remediation.
+- [Architecture](#architecture)
+- [Orbit Application Workload](#orbit-application-workload)
+- [Technology Stack](#technology-stack)
+- [SAIL Workloads](#sail-workloads)
+- [Observability](#observability)
+- [Security](#security)
+- [Automation](#automation)
+- [AI-Assisted Operations](#ai-assisted-operations)
+- [Persistent Storage](#persistent-storage)
+- [Repository Structure](#repository-structure)
+- [Documentation](#documentation)
+- [Project Status](#project-status)
+- [Project Objective](#project-objective)
 
 ---
 
@@ -46,7 +47,6 @@ flowchart TB
     P2 --- P3
 
     P1 --> SSD
-
     CLUSTER --> ORBIT
     ORBIT --> DB
 ```
@@ -54,7 +54,7 @@ flowchart TB
 ### Cluster
 
 | System | Role |
-|---|---|
+| --- | --- |
 | `pi-node-1` | k3s control plane, schedulable worker, NFS/SSD host |
 | `pi-node-2` | k3s worker |
 | `pi-node-3` | k3s worker |
@@ -67,9 +67,9 @@ Persistent Kubernetes storage is provided through NFS from the external SSD atta
 
 ## Orbit Application Workload
 
-SAIL includes **Orbit**, a Python/FastAPI social application that serves as the primary realistic application workload for the lab.
+SAIL includes **[Orbit](sail-orbit/)**, a Python/FastAPI social application that serves as the primary realistic application workload for the lab.
 
-Orbit provides activity that can be deployed, monitored, logged, investigated, secured, and automated throughout the rest of SAIL.
+Orbit provides activity that can be deployed, monitored, logged, investigated, secured, and automated throughout SAIL.
 
 ### Application Features
 
@@ -89,28 +89,29 @@ Orbit provides activity that can be deployed, monitored, logged, investigated, s
 
 ### Relationship-Based Authorization
 
-Orbit's defining application feature is relationship-based content visibility.
+Orbit's defining application feature is **relationship-based content visibility**.
 
 Instead of treating every social connection identically, users can classify relationships according to type or closeness. These relationships influence which content another user is authorized to retrieve.
 
-For example, content can be limited to audiences such as:
+```mermaid
+flowchart LR
+    A["Authenticated User"] --> B["Requests Content"]
+    B --> C{"Relationship<br/>Authorized?"}
+    C -->|Yes| D["Return Content"]
+    C -->|No| E["Deny Access"]
+```
 
-- Close friends
-- Friends
-- Acquaintances
-- Work
-- Family
-- Specific groups
-- Everyone
+This provides SAIL with authorization activity including relationship changes, visibility changes, permission checks, successful access decisions, and denied access attempts.
 
-This creates authorization activity that is useful to SAIL beyond ordinary authentication. Relationship changes, visibility changes, denied requests, permission checks, and attempts to access content outside an authorized audience can all generate observable application and security events.
+> [!TIP]
+> See the **[Orbit README](sail-orbit/README.md)** for the application's architecture, relationship model, technology stack, and development status.
 
 ---
 
 ## Technology Stack
 
 | Area | Technologies |
-|---|---|
+| --- | --- |
 | **Cluster** | Kubernetes, k3s, containerd |
 | **Storage** | NFS, ext4 |
 | **Application** | Python, FastAPI, Pydantic, Uvicorn |
@@ -122,31 +123,27 @@ This creates authorization activity that is useful to SAIL beyond ordinary authe
 | **Development & Testing** | Docker, pytest, Ruff, Black |
 | **Version Control** | Git, GitHub |
 
-> **Note:** k3s uses `containerd` as the cluster container runtime. Docker is used for application image development and testing.
+> [!IMPORTANT]
+> k3s uses `containerd` as the cluster container runtime. Docker is used for application image development and testing.
 
 ---
 
 ## SAIL Workloads
 
-SAIL is designed around several types of interacting workloads.
+SAIL brings several types of activity together in one environment.
 
-### Application Workload
+| Workload | Purpose |
+| --- | --- |
+| **Application** | API requests, authentication, authorization, database operations, and user activity |
+| **Security** | Runtime behavior, vulnerability findings, authentication activity, and authorization decisions |
+| **Automation & AI** | Operational analysis, configuration management, investigation, and repeatable workflows |
+| **Infrastructure** | Deployments, configuration changes, storage operations, resource utilization, and Kubernetes administration |
 
-Orbit generates normal application activity including API requests, authentication, authorization, database operations, user activity, and application errors.
+Together, these workloads exercise an operational lifecycle spanning:
 
-### Security Workload
-
-Security tooling observes runtime behavior, application activity, vulnerabilities, authentication attempts, authorization failures, and intentionally generated security events.
-
-### Automated and AI Workload
-
-Automation and locally hosted AI services support operational analysis, investigation, configuration management, and repeatable workflows.
-
-### Operational Workload
-
-Infrastructure activity includes deployments, configuration changes, resource consumption, service failures, storage operations, recovery procedures, and Kubernetes administration.
-
-Together, these workloads allow SAIL to exercise the complete path from **activity → telemetry → detection → investigation → remediation**.
+```text
+Activity → Telemetry → Detection → Investigation → Remediation
+```
 
 ---
 
@@ -155,40 +152,40 @@ Together, these workloads allow SAIL to exercise the complete path from **activi
 SAIL's observability environment is designed to provide visibility into the Raspberry Pi systems, Kubernetes cluster, containers, Orbit application, and PostgreSQL database.
 
 | Tool | Purpose |
-|---|---|
+| --- | --- |
 | **Prometheus** | Metrics collection |
 | **Grafana** | Dashboards and visualization |
 | **Loki** | Centralized log collection and searching |
 | **OpenTelemetry** | Application telemetry and tracing |
 
-The project will establish a normal operating baseline that can be compared against intentionally generated failures and security events.
+A normal operating baseline will provide a reference for comparing infrastructure and application behavior during later operational and security scenarios.
 
 ---
 
 ## Security
 
-SAIL incorporates security tooling directly into the operating environment rather than treating security as a separate exercise.
+Security tooling is integrated directly into the SAIL environment.
 
 | Tool | Purpose |
-|---|---|
+| --- | --- |
 | **Falco** | Runtime behavior and threat detection |
 | **Trivy** | Container, configuration, and vulnerability scanning |
 
-Orbit also generates application-level security activity through authentication attempts, authorization decisions, administrative operations, validation failures, relationship changes, visibility changes, and denied access attempts.
+Orbit complements the infrastructure tooling by generating application-level security activity through authentication attempts, authorization decisions, administrative operations, validation events, relationship changes, visibility changes, and access decisions.
 
 ---
 
 ## Automation
 
-Repetitive infrastructure and configuration tasks are automated where practical.
+SAIL uses automation to make infrastructure and configuration workflows reproducible.
 
-SAIL uses:
+| Tool | Purpose |
+| --- | --- |
+| **Ansible** | System and configuration automation |
+| **Terraform / OpenTofu** | Infrastructure-as-code workflows |
+| **Shell scripts** | Environment and cluster setup |
 
-- **Ansible** for system and configuration automation
-- **Terraform / OpenTofu** for infrastructure-as-code workflows
-- **Shell scripts** for environment and cluster setup tasks
-
-Automation is intended to make configuration reproducible while preserving the hands-on administration and troubleshooting aspects of the lab.
+Automation supports repeatable configuration while retaining hands-on administration, validation, and troubleshooting within the lab.
 
 ---
 
@@ -196,7 +193,7 @@ Automation is intended to make configuration reproducible while preserving the h
 
 SAIL includes locally hosted AI services using **Ollama** and **Open WebUI**.
 
-AI-assisted workflows are intended to operate on information generated within the lab, including:
+AI-assisted workflows will operate on information produced within the lab:
 
 - Logs
 - Alerts
@@ -206,7 +203,7 @@ AI-assisted workflows are intended to operate on information generated within th
 - Security findings
 - Troubleshooting information
 
-The goal is to evaluate how AI-assisted analysis can support operational and security investigation while keeping the environment locally hosted.
+The goal is to evaluate AI-assisted operational and security analysis within a locally hosted environment.
 
 ---
 
@@ -214,15 +211,13 @@ The goal is to evaluate how AI-assisted analysis can support operational and sec
 
 The Kubernetes cluster uses a centralized **1 TB external SSD** attached to `pi-node-1`.
 
-The SSD is formatted as `ext4` and exposed to the cluster through NFS.
-
 ```text
 pi-node-1
 └── /mnt/sail-storage
     └── kubernetes
 ```
 
-Kubernetes dynamically provisions persistent volumes through the NFS CSI driver using the `sail-nfs` StorageClass.
+The SSD uses `ext4` and is exposed to the cluster through NFS. Kubernetes dynamically provisions persistent volumes through the NFS CSI driver using the `sail-nfs` StorageClass.
 
 ---
 
@@ -230,14 +225,45 @@ Kubernetes dynamically provisions persistent volumes through the NFS CSI driver 
 
 ```text
 SAIL/
-├── sail-orbit/          # Orbit application
-├── setup_scripts/       # Environment and cluster setup automation
-├── kubernetes/          # Kubernetes manifests and configuration
-├── documentation/       # Detailed project documentation and supporting assets
-└── README.md            # Project overview
+├── .vscode/
+├── docs/
+│   ├── setup_scripts/
+│   └── SAIL.pdf
+├── sail-orbit/
+├── .gitignore
+└── README.md
 ```
 
-> Repository structure may expand as monitoring, security, automation, and AI components are implemented.
+> [!NOTE]
+> The repository structure will evolve as additional SAIL components are implemented.
+
+---
+
+## Documentation
+
+The README provides the high-level project overview. The complete build and implementation record is maintained separately in **`docs/SAIL.pdf`**.
+
+<details>
+<summary><strong>View documentation contents</strong></summary>
+
+1. Introduction, purpose, hardware, and design
+2. Software choices and architecture decisions
+3. Operating system setup
+4. Physical setup and wiring
+5. Network and shared-storage configuration
+6. Kubernetes setup
+7. Workload design
+8. Application development and deployment
+9. Monitoring, logging, and observability
+10. Security and infrastructure automation
+11. AI-assisted operations and deployment automation
+12. Event scenarios and investigation workflows
+
+The documentation contains the commands, configuration, verification steps, troubleshooting information, and setup scripts used to construct the environment.
+
+</details>
+
+**[View the full SAIL documentation](docs/SAIL.pdf)**
 
 ---
 
@@ -282,62 +308,21 @@ SAIL/
 
 ---
 
-## Documentation
-
-The README provides a high-level overview of SAIL.
-
-Detailed project documentation is maintained separately and includes:
-
-<details>
-<summary><strong>Documentation contents</strong></summary>
-
-1. Introduction, purpose, hardware, and design
-2. Software choices and architecture decisions
-3. Operating system setup
-4. Physical setup and wiring
-5. Network and shared-storage configuration
-6. Kubernetes setup
-7. Workload design
-8. Application development and deployment
-9. Monitoring, logging, and observability
-10. Security and infrastructure automation
-11. AI-assisted operations and deployment automation
-12. Event scenarios and investigation workflows
-
-The documentation also contains the commands, configuration, verification steps, troubleshooting information, and setup scripts used to construct the environment.
-
-</details>
-
-**See the SAIL project PDF for the complete implementation and build documentation.**
-
----
-
 ## Project Objective
 
-The long-term objective of SAIL is to develop repeatable workflows demonstrating how modern infrastructure, application development, observability, cybersecurity, automation, and AI-assisted analysis can operate together within a self-hosted environment.
+SAIL is being developed to demonstrate how modern infrastructure, application development, observability, cybersecurity, automation, and AI-assisted analysis can operate together within a self-hosted environment.
 
-The finished environment is intended to support the complete operational cycle:
+The completed environment is designed to support an integrated operational cycle:
 
-```text
-Deploy
-  ↓
-Operate
-  ↓
-Observe
-  ↓
-Detect
-  ↓
-Investigate
-  ↓
-Remediate
-  ↓
-Verify
+```mermaid
+flowchart LR
+    A["Deploy"] --> B["Operate"]
+    B --> C["Observe"]
+    C --> D["Detect"]
+    D --> E["Investigate"]
+    E --> F["Remediate"]
+    F --> G["Verify"]
 ```
 
----
-
-## Status
-
-> **SAIL is under active development.**
-
-The Kubernetes infrastructure and persistent-storage foundation are operational. Current development is focused on the Orbit application before progressing into observability, security tooling, automation, AI-assisted operations, and integrated investigation scenarios.
+> [!NOTE]
+> **SAIL is under active development.** The Kubernetes infrastructure and persistent-storage foundation are operational. Current development is focused on Orbit before progressing into observability, security tooling, automation, AI-assisted operations, and integrated investigation scenarios.
