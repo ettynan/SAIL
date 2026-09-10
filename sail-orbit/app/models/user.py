@@ -1,4 +1,4 @@
-"""User database model for Orbit."""
+"""User database model for SAIL Orbit."""
 
 from datetime import datetime, timezone
 
@@ -9,7 +9,7 @@ from app.models import Base
 
 
 class User(Base):
-    """Represent a Orbit user account."""
+    """Represent a SAIL Orbit user account."""
 
     # Name of the PostgreSQL table represented by this model.
     __tablename__ = "users"
