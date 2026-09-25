@@ -1,13 +1,14 @@
 """Define authentication-related API endpoints for SAIL Orbit."""
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.extensions import get_db
 from app.models.user import User
+from app.schemas.auth import LoginRequest, TokenResponse
 from app.schemas.user import UserRegistration
-from app.services.auth import hash_password
-
+from app.services.auth import create_access_token, hash_password, verify_password
 
 # Group authentication endpoints under the /auth URL prefix.
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -19,6 +20,27 @@ def register_user(
     database: Session = Depends(get_db),
 ):
     """Create a new SAIL Orbit user account from registration data."""
+
+    # Check whether another account already uses the submitted username or
+    # email address before attempting to create the new database record.
+    existing_user = (
+        database.query(User)
+        .filter(
+            or_(
+                User.username == registration.username,
+                User.email == registration.email,
+            )
+        )
+        .first()
+    )
+
+    # Reject duplicate account information with a conflict response instead
+    # of allowing the database uniqueness constraint to fail during commit.
+    if existing_user is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username or email already registered.",
+        )
 
     # Convert the submitted plaintext password into a secure hash before
     # creating the database record. The plaintext password is never stored.
@@ -44,3 +66,31 @@ def register_user(
         "role": user.role,
         "is_active": user.is_active,
     }
+
+
+# Login endpoint
+@router.post("/login", response_model=TokenResponse)
+def login_user(
+    login: LoginRequest,
+    database: Session = Depends(get_db),
+):
+    """Authenticate a user and return a JWT access token."""
+
+    # Find the account associated with the submitted username.
+    user = database.query(User).filter(User.username == login.username).first()
+
+    # Use the same response for an unknown username or incorrect password so
+    # the endpoint does not reveal which part of the login attempt failed.
+    if user is None or not verify_password(login.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password.",
+        )
+
+    # Create an access token identifying the authenticated user.
+    access_token = create_access_token(user.id)
+
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+    )
