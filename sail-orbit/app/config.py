@@ -1,9 +1,11 @@
 """Application configuration for Orbit."""
 
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 class Config:
     """Store configuration values loaded from environment variables."""

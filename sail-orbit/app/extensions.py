@@ -5,7 +5,6 @@ from sqlalchemy.orm import sessionmaker
 
 from app.config import Config
 
-
 # Create the shared connection point between SQLAlchemy and PostgreSQL.
 engine = create_engine(
     Config.DATABASE_URL,
