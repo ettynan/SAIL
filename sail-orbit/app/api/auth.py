@@ -79,9 +79,14 @@ def login_user(
     # Find the account associated with the submitted username.
     user = database.query(User).filter(User.username == login.username).first()
 
-    # Use the same response for an unknown username or incorrect password so
-    # the endpoint does not reveal which part of the login attempt failed.
-    if user is None or not verify_password(login.password, user.password_hash):
+    # Authentication succeeds only for an existing, active account with the
+    # correct password. Using the same response for each failure avoids exposing
+    # whether a username exists or an account has been deactivated.
+    if (
+        user is None
+        or not user.is_active
+        or not verify_password(login.password, user.password_hash)
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password.",

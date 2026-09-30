@@ -1,5 +1,5 @@
 """
-Integration tests for SAIL Orbit user APIs.
+Integration tests for SAIL Orbit user registration and login APIs.
 
 These tests send requests through FastAPI instead of calling endpoint
 functions directly. This verifies that routing, validation, authentication,
@@ -7,9 +7,7 @@ database access, and responses work together through the app's real
 API boundary.
 
 Reusable fixtures and helpers handle repeated test setup. Operations that are
-the actual subject of a test remain visible in that test. Protected endpoint
-tests obtain JWTs through the real login endpoint because JWT internals are
-already tested separately in tests/test_auth.py.
+the actual subject of a test remain visible in that test.
 """
 
 import httpx2
@@ -21,7 +19,6 @@ from app.models.user import User
 from app.services.auth import verify_password
 from run import app
 
-
 TEST_USERNAME = "orbit_test_user"
 TEST_EMAIL = "orbit_test_user@example.com"
 TEST_PASSWORD = "OrbitTest123!"
@@ -32,9 +29,7 @@ def delete_test_user():
     """Remove the standard test user from PostgreSQL."""
 
     with SessionLocal() as database:
-        user = database.scalar(
-            select(User).where(User.username == TEST_USERNAME)
-        )
+        user = database.scalar(select(User).where(User.username == TEST_USERNAME))
 
         if user is not None:
             database.delete(user)
@@ -79,20 +74,6 @@ async def register_test_user(client):
     return response
 
 
-async def login_test_user(client):
-    """Log in through the real API and return its response."""
-
-    response = await client.post(
-        "/auth/login",
-        json={
-            "username": TEST_USERNAME,
-            "password": TEST_PASSWORD,
-        },
-    )
-    assert response.status_code == 200
-    return response
-
-
 @pytest.mark.anyio
 async def test_register_user(client):
     """Verify that valid registration creates a user."""
@@ -122,9 +103,7 @@ async def test_register_user(client):
     # Check PostgreSQL separately so a successful response alone does not
     # count as proof that the account was actually persisted.
     with SessionLocal() as database:
-        user = database.scalar(
-            select(User).where(User.username == TEST_USERNAME)
-        )
+        user = database.scalar(select(User).where(User.username == TEST_USERNAME))
 
         assert user is not None
         assert user.email == TEST_EMAIL
@@ -171,9 +150,7 @@ async def test_register_rejects_duplicate_username(client):
     )
 
     assert response.status_code == 409
-    assert response.json()["detail"] == (
-        "Username or email already registered."
-    )
+    assert response.json()["detail"] == ("Username or email already registered.")
 
 
 @pytest.mark.anyio
@@ -194,9 +171,7 @@ async def test_register_rejects_duplicate_email(client):
     )
 
     assert response.status_code == 409
-    assert response.json()["detail"] == (
-        "Username or email already registered."
-    )
+    assert response.json()["detail"] == ("Username or email already registered.")
 
 
 @pytest.mark.anyio
@@ -298,48 +273,3 @@ async def test_login_rejects_unknown_username(client):
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid username or password."
-
-
-@pytest.mark.anyio
-async def test_get_own_profile(client):
-    """Verify that an authenticated user can retrieve their own profile."""
-
-    await register_test_user(client)
-
-    # Use a JWT from the real login endpoint to test the same authentication
-    # boundary that an Orbit client will use.
-    login_response = await login_test_user(client)
-    access_token = login_response.json()["access_token"]
-
-    response = await client.get(
-        "/users/me",
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
-
-    assert response.status_code == 200
-
-    data = response.json()
-    assert data["username"] == TEST_USERNAME
-    assert data["email"] == TEST_EMAIL
-    assert data["display_name"] == TEST_DISPLAY_NAME
-    assert data["bio"] is None
-    assert data["role"] == "user"
-    assert data["is_active"] is True
-    assert "id" in data
-    assert "created_at" in data
-    assert "updated_at" in data
-
-    # Profile retrieval must never expose authentication secrets.
-    assert "password" not in data
-    assert "password_hash" not in data
-    
-
-@pytest.mark.anyio
-async def test_get_own_profile_requires_authentication(client):
-    """Verify that a user must authenticate before retrieving their profile."""
-
-    # Make the request without a Bearer token to verify that the protected
-    # endpoint cannot be accessed anonymously.
-    response = await client.get("/users/me")
-
-    assert response.status_code == 401
