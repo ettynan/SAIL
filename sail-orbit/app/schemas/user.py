@@ -39,3 +39,21 @@ class UserRegistration(BaseModel):
             raise ValueError("Password must contain a special character.")
 
         return password
+
+
+class UserProfileUpdate(BaseModel):
+    """Define profile information an authenticated user may update."""
+
+    # Both fields are optional so a user can update one profile field without
+    # being required to resubmit the other.
+    display_name: str | None = None
+    bio: str | None = None
+
+
+class UserStatusUpdate(BaseModel):
+    """Define an administrator-requested change to a user's account status."""
+
+    # Account activation is intentionally the only field accepted here.
+    # Role changes and profile changes are separate operations with different
+    # authorization and validation requirements.
+    is_active: bool

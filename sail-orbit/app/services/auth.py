@@ -81,3 +81,23 @@ def get_current_user(
         )
 
     return user
+
+
+# This creates the reusable role check for administrator-only operations. A missing
+# or invalid login remains a 401, while an authenticated user without the required
+# role receives 403 Forbidden.
+def require_admin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Return the authenticated user when the account has the admin role."""
+
+    # Authentication is handled first by get_current_user. This dependency
+    # adds authorization by requiring the authenticated account to have the
+    # admin role before the protected endpoint can run.
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrator access required.",
+        )
+
+    return current_user

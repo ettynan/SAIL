@@ -15,6 +15,7 @@ from app.services.auth import (
     decode_access_token,
     get_current_user,
     hash_password,
+    require_admin,
     verify_password,
 )
 
@@ -184,3 +185,37 @@ def test_get_current_user_rejects_unknown_user():
         )
 
     assert exception.value.status_code == 401
+
+
+def test_require_admin_accepts_admin_user():
+    """Verify that an authenticated administrator passes authorization."""
+
+    user = User(
+        username="admin_test",
+        email="admin_test@example.com",
+        password_hash="unused",
+        display_name="Admin Test",
+        role="admin",
+        is_active=True,
+    )
+
+    assert require_admin(user) is user
+
+
+def test_require_admin_rejects_regular_user():
+    """Verify that an authenticated regular user is denied admin access."""
+
+    user = User(
+        username="user_test",
+        email="user_test@example.com",
+        password_hash="unused",
+        display_name="User Test",
+        role="user",
+        is_active=True,
+    )
+
+    with pytest.raises(HTTPException) as error:
+        require_admin(user)
+
+    assert error.value.status_code == 403
+    assert error.value.detail == "Administrator access required."
