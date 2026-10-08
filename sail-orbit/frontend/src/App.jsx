@@ -1,54 +1,55 @@
 /**
- * Main React application for SAIL Orbit.
- *
- * Verifies frontend-to-backend connectivity by retrieving and displaying
- * an existing user's public profile from the FastAPI backend.
+ * Main Orbit application with registration and login screens.
  */
 
-import { useEffect, useState } from 'react'
-import { getPublicProfile } from './api'
+import { useState } from 'react'
+import RegisterForm from './components/RegisterForm'
+import LoginForm from './components/LoginForm'
 
 /**
- * Render the Orbit application and display a public user profile.
+ * Render the authentication interface and handle successful login.
  *
- * @returns {import('react').JSX.Element} The application interface.
+ * @returns {import('react').JSX.Element} Application interface.
  */
 function App() {
-  const [profile, setProfile] = useState(null)
-  const [error, setError] = useState(null)
+  const [screen, setScreen] = useState('login')
+  const [accessToken, setAccessToken] = useState(null)
 
-  // Fetch an existing public profile when the component mounts.
-  useEffect(() => {
-    getPublicProfile('orbit_test_01')
-      .then(setProfile)
-      .catch((err) => setError(err.message))
-  }, [])
+  if (accessToken) {
+    return (
+      <main className="mx-auto max-w-md p-8">
+        <h1 className="text-3xl font-bold">SAIL Orbit</h1>
+        <p className="mt-4">Login successful.</p>
+        <button
+          type="button"
+          className="mt-4 rounded-md border px-4 py-2"
+          onClick={() => setAccessToken(null)}
+        >
+          Log out
+        </button>
+      </main>
+    )
+  }
 
   return (
-    <main className="mx-auto max-w-2xl p-8">
-      <h1 className="mb-6 text-3xl font-bold">SAIL Orbit</h1>
+    <main className="mx-auto max-w-md space-y-6 p-8">
+      <h1 className="text-3xl font-bold">SAIL Orbit</h1>
 
-      {error && (
-        <p className="text-red-600" role="alert">
-          {error}
-        </p>
+      {screen === 'login' ? (
+        <LoginForm onSuccess={setAccessToken} />
+      ) : (
+        <RegisterForm onSuccess={() => setScreen('login')} />
       )}
 
-      {!profile && !error && <p>Loading profile...</p>}
-
-      {profile && (
-        <section className="rounded-lg border p-6">
-          <h2 className="text-xl font-semibold">
-            {profile.display_name}
-          </h2>
-
-          <p className="text-sm text-gray-500">
-            @{profile.username}
-          </p>
-
-          <p className="mt-4">{profile.bio}</p>
-        </section>
-      )}
+      <button
+        type="button"
+        className="text-sm underline"
+        onClick={() => setScreen(screen === 'login' ? 'register' : 'login')}
+      >
+        {screen === 'login'
+          ? 'Need an account? Register'
+          : 'Already have an account? Log in'}
+      </button>
     </main>
   )
 }

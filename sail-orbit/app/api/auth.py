@@ -48,7 +48,6 @@ def register_user(
         username=registration.username,
         email=registration.email,
         password_hash=hash_password(registration.password),
-        display_name=registration.display_name,
     )
 
     # Stage the new user, save the transaction, and reload database-generated
@@ -62,7 +61,6 @@ def register_user(
         "id": user.id,
         "username": user.username,
         "email": user.email,
-        "display_name": user.display_name,
         "role": user.role,
         "is_active": user.is_active,
     }

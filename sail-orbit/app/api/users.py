@@ -34,7 +34,6 @@ def get_own_profile(
         "id": current_user.id,
         "username": current_user.username,
         "email": current_user.email,
-        "display_name": current_user.display_name,
         "bio": current_user.bio,
         "role": current_user.role,
         "is_active": current_user.is_active,
@@ -70,7 +69,6 @@ def update_own_profile(
         "id": current_user.id,
         "username": current_user.username,
         "email": current_user.email,
-        "display_name": current_user.display_name,
         "bio": current_user.bio,
         "role": current_user.role,
         "is_active": current_user.is_active,
@@ -103,7 +101,6 @@ def get_public_profile(
     return {
         "id": user.id,
         "username": user.username,
-        "display_name": user.display_name,
         "bio": user.bio,
         "created_at": user.created_at,
     }
@@ -138,7 +135,6 @@ def update_user_status(
     return {
         "id": user.id,
         "username": user.username,
-        "display_name": user.display_name,
         "role": user.role,
         "is_active": user.is_active,
     }

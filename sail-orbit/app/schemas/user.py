@@ -12,9 +12,6 @@ class UserRegistration(BaseModel):
     email: EmailStr
     password: str
 
-    # This value becomes the name shown to other users.
-    display_name: str
-
     @field_validator("password")
     @classmethod
     def validate_password(cls, password: str) -> str:
@@ -44,9 +41,7 @@ class UserRegistration(BaseModel):
 class UserProfileUpdate(BaseModel):
     """Define profile information an authenticated user may update."""
 
-    # Both fields are optional so a user can update one profile field without
-    # being required to resubmit the other.
-    display_name: str | None = None
+    # Bio is optional so a user can omit it from a profile update request.
     bio: str | None = None
 
 

@@ -86,7 +86,6 @@ def create_admin_user():
             username=ADMIN_USERNAME,
             email=ADMIN_EMAIL,
             password_hash=hash_password(ADMIN_PASSWORD),
-            display_name="Orbit Test Admin",
             role="admin",
             is_active=True,
         )
@@ -106,7 +105,6 @@ async def register_managed_user(client):
             "username": USER_USERNAME,
             "email": USER_EMAIL,
             "password": USER_PASSWORD,
-            "display_name": "Orbit Managed User",
         },
     )
 

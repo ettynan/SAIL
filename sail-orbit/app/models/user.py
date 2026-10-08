@@ -36,10 +36,6 @@ class User(Base):
     )
 
     # Public profile information.
-    display_name: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-    )
     bio: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
