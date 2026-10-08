@@ -83,7 +83,6 @@ def test_get_current_user_accepts_valid_token():
             username="current_user_test",
             email="current_user_test@example.com",
             password_hash=hash_password("OrbitTest123!"),
-            display_name="Current User Test",
         )
         database.add(user)
         database.commit()
@@ -194,7 +193,6 @@ def test_require_admin_accepts_admin_user():
         username="admin_test",
         email="admin_test@example.com",
         password_hash="unused",
-        display_name="Admin Test",
         role="admin",
         is_active=True,
     )
@@ -209,7 +207,6 @@ def test_require_admin_rejects_regular_user():
         username="user_test",
         email="user_test@example.com",
         password_hash="unused",
-        display_name="User Test",
         role="user",
         is_active=True,
     )

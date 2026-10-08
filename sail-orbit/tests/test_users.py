@@ -22,7 +22,6 @@ from run import app
 TEST_USERNAME = "orbit_test_user"
 TEST_EMAIL = "orbit_test_user@example.com"
 TEST_PASSWORD = "OrbitTest123!"
-TEST_DISPLAY_NAME = "Orbit Test User"
 
 
 def delete_test_user():
@@ -67,7 +66,6 @@ async def register_test_user(client):
             "username": TEST_USERNAME,
             "email": TEST_EMAIL,
             "password": TEST_PASSWORD,
-            "display_name": TEST_DISPLAY_NAME,
         },
     )
     assert response.status_code == 201
@@ -85,7 +83,6 @@ async def test_register_user(client):
             "username": TEST_USERNAME,
             "email": TEST_EMAIL,
             "password": TEST_PASSWORD,
-            "display_name": TEST_DISPLAY_NAME,
         },
     )
 
@@ -94,7 +91,6 @@ async def test_register_user(client):
     data = response.json()
     assert data["username"] == TEST_USERNAME
     assert data["email"] == TEST_EMAIL
-    assert data["display_name"] == TEST_DISPLAY_NAME
     assert data["role"] == "user"
     assert data["is_active"] is True
     assert "password" not in data
@@ -145,7 +141,6 @@ async def test_register_rejects_duplicate_username(client):
             "username": TEST_USERNAME,
             "email": "different@example.com",
             "password": TEST_PASSWORD,
-            "display_name": "Duplicate Username Test",
         },
     )
 
@@ -166,7 +161,6 @@ async def test_register_rejects_duplicate_email(client):
             "username": "different_orbit_user",
             "email": TEST_EMAIL,
             "password": TEST_PASSWORD,
-            "display_name": "Duplicate Email Test",
         },
     )
 
@@ -184,7 +178,6 @@ async def test_register_rejects_short_password(client):
             "username": TEST_USERNAME,
             "email": TEST_EMAIL,
             "password": "Short1!",
-            "display_name": TEST_DISPLAY_NAME,
         },
     )
 
@@ -215,7 +208,6 @@ async def test_register_rejects_password_missing_required_character_type(
             "username": TEST_USERNAME,
             "email": TEST_EMAIL,
             "password": password,
-            "display_name": TEST_DISPLAY_NAME,
         },
     )
 
@@ -232,7 +224,6 @@ async def test_register_rejects_invalid_email(client):
             "username": TEST_USERNAME,
             "email": "not-an-email",
             "password": TEST_PASSWORD,
-            "display_name": TEST_DISPLAY_NAME,
         },
     )
 

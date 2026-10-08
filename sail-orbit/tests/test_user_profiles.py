@@ -23,7 +23,6 @@ from run import app
 TEST_USERNAME = "orbit_test_user"
 TEST_EMAIL = "orbit_test_user@example.com"
 TEST_PASSWORD = "OrbitTest123!"
-TEST_DISPLAY_NAME = "Orbit Test User"
 
 
 def delete_test_user():
@@ -68,7 +67,6 @@ async def register_test_user(client):
             "username": TEST_USERNAME,
             "email": TEST_EMAIL,
             "password": TEST_PASSWORD,
-            "display_name": TEST_DISPLAY_NAME,
         },
     )
     assert response.status_code == 201
@@ -110,7 +108,6 @@ async def test_get_own_profile(client):
     data = response.json()
     assert data["username"] == TEST_USERNAME
     assert data["email"] == TEST_EMAIL
-    assert data["display_name"] == TEST_DISPLAY_NAME
     assert data["bio"] is None
     assert data["role"] == "user"
     assert data["is_active"] is True
@@ -145,13 +142,11 @@ async def test_update_own_profile(client):
     login_response = await login_test_user(client)
     access_token = login_response.json()["access_token"]
 
-    # Update both user-editable profile fields through the authenticated
-    # endpoint.
+    # Update the user-editable bio through the authenticated endpoint.
     response = await client.patch(
         "/users/me",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
-            "display_name": "Updated Orbit User",
             "bio": "Updated profile bio.",
         },
     )
@@ -159,7 +154,6 @@ async def test_update_own_profile(client):
     assert response.status_code == 200
 
     data = response.json()
-    assert data["display_name"] == "Updated Orbit User"
     assert data["bio"] == "Updated profile bio."
 
     # Account and authorization fields must remain unchanged by a profile edit.
@@ -171,29 +165,6 @@ async def test_update_own_profile(client):
     # Profile responses must never expose authentication secrets.
     assert "password" not in data
     assert "password_hash" not in data
-
-
-@pytest.mark.anyio
-async def test_update_own_profile_partially(client):
-    """Verify that updating one profile field preserves omitted fields."""
-
-    await register_test_user(client)
-    login_response = await login_test_user(client)
-    access_token = login_response.json()["access_token"]
-
-    # Submit only the bio. PATCH should leave the existing display name
-    # unchanged because display_name was omitted from the request.
-    response = await client.patch(
-        "/users/me",
-        headers={"Authorization": f"Bearer {access_token}"},
-        json={"bio": "A new bio."},
-    )
-
-    assert response.status_code == 200
-
-    data = response.json()
-    assert data["bio"] == "A new bio."
-    assert data["display_name"] == TEST_DISPLAY_NAME
 
 
 @pytest.mark.anyio
@@ -233,13 +204,12 @@ async def test_update_own_profile_cannot_change_protected_fields(client):
     login_response = await login_test_user(client)
     access_token = login_response.json()["access_token"]
 
-    # Attempt to change authorization and account-status fields alongside an
-    # allowed profile field. Only the allowed profile field should change.
+    # Attempt to change authorization and account-status fields.
+    # Neither field should change.
     response = await client.patch(
         "/users/me",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
-            "display_name": "Updated Orbit User",
             "role": "admin",
             "is_active": False,
         },
@@ -248,7 +218,6 @@ async def test_update_own_profile_cannot_change_protected_fields(client):
     assert response.status_code == 200
 
     data = response.json()
-    assert data["display_name"] == "Updated Orbit User"
     assert data["role"] == "user"
     assert data["is_active"] is True
 
@@ -261,7 +230,7 @@ async def test_update_own_profile_requires_authentication(client):
     # reject the request before any profile change occurs.
     response = await client.patch(
         "/users/me",
-        json={"display_name": "Unauthorized Update"},
+        json={},
     )
 
     assert response.status_code == 401
@@ -279,7 +248,6 @@ async def test_get_public_profile(client):
 
     data = response.json()
     assert data["username"] == TEST_USERNAME
-    assert data["display_name"] == TEST_DISPLAY_NAME
     assert data["bio"] is None
     assert "id" in data
     assert "created_at" in data
