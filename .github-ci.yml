@@ -1,0 +1,36 @@
+
+stages:
+  - lint
+
+black:
+  stage: lint
+  image: python:3.12
+  allow_failure: true
+  script:
+    - cd sail-orbit
+    - pip install black==26.5.1
+    - black --check .
+
+ruff:
+  stage: lint
+  image: python:3.12
+  allow_failure: true
+  script:
+    - cd sail-orbit
+    - pip install ruff==0.16.3
+    - ruff check .
+
+eslint:
+  stage: lint
+  image: node:22
+  allow_failure: true
+  script:
+    - cd sail-orbit/frontend
+    - npm ci
+    - npm run lint
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "push"'
+ 
