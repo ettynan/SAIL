@@ -5,7 +5,6 @@ from sqlalchemy import engine_from_config, pool
 
 from app.config import Config
 from app.models import Base
-
 from app.models.post import Post  # noqa: F401
 from app.models.user import User  # noqa: F401
 

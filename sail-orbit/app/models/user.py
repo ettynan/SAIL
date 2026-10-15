@@ -1,7 +1,7 @@
 """User database model for SAIL Orbit."""
 
-from typing import TYPE_CHECKING
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -69,7 +69,7 @@ class User(Base):
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
-    
+
     # Access posts authored by this user.
     posts: Mapped[list["Post"]] = relationship(
         "Post",

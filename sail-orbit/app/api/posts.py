@@ -1,4 +1,3 @@
-
 """Define post creation, retrieval, editing, and deletion endpoints for SAIL Orbit."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -7,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.extensions import get_db
 from app.models.post import Post
 from app.models.user import User
-from app.schemas.post import PostCreate, PostUpdate, PostResponse
+from app.schemas.post import PostCreate, PostResponse, PostUpdate
 from app.services.auth import get_current_user
 
 # Group post operations under the /posts URL prefix.
@@ -48,11 +47,7 @@ def list_posts(
     """Return posts ordered from newest to oldest."""
 
     # Order by creation time and use the post ID to break timestamp ties.
-    return (
-        database.query(Post)
-        .order_by(Post.created_at.desc(), Post.id.desc())
-        .all()
-    )
+    return database.query(Post).order_by(Post.created_at.desc(), Post.id.desc()).all()
 
 
 @router.get("/{post_id}", response_model=PostResponse)

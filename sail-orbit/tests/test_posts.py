@@ -1,4 +1,3 @@
-
 """Integration tests for SAIL Orbit post APIs.
 
 These tests exercise the real FastAPI endpoints, including authentication,
@@ -14,7 +13,6 @@ from sqlalchemy import select
 from app.extensions import SessionLocal
 from app.models.user import User
 from run import app
-
 
 TEST_USERS = [
     {

@@ -1,13 +1,13 @@
-
 """Post database model for SAIL Orbit."""
 
-from typing import TYPE_CHECKING
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models import Base
+
 if TYPE_CHECKING:
     from app.models.user import User
 
