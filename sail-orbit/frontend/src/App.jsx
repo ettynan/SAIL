@@ -1,5 +1,7 @@
+
 /**
- * Main Orbit application with authentication and profile navigation.
+ * Main Orbit application with authentication, profile navigation,
+ * and post management.
  */
 
 import { useState } from "react";
@@ -8,9 +10,10 @@ import LoginForm from "./components/LoginForm";
 import UserProfile from "./components/UserProfile";
 import PublicProfile from "./components/PublicProfile";
 import AdminAccounts from "./components/AdminAccounts";
+import Posts from "./components/Posts";
 
 /**
- * Render authentication screens and authenticated profile navigation.
+ * Render authentication screens and authenticated application navigation.
  *
  * @returns {import('react').JSX.Element} Application interface.
  */
@@ -54,8 +57,19 @@ function App() {
         <header className="space-y-4">
           <h1 className="text-3xl font-bold">SAIL Orbit</h1>
 
-          {/* Navigate between account and public profile screens. */}
-          <nav className="flex gap-4" aria-label="Profile navigation">
+          {/* Navigate between posts, account management, and profiles. */}
+          <nav
+            className="flex gap-4"
+            aria-label="Profile navigation"
+          >
+            <button
+              type="button"
+              className="text-sm underline"
+              onClick={() => setProfileScreen("posts")}
+            >
+              Posts
+            </button>
+
             <button
               type="button"
               className="text-sm underline"
@@ -94,8 +108,10 @@ function App() {
           </form>
         </header>
 
-        {/* Display the authenticated profile, administration screen, or public profile. */}
-        {profileScreen === "own" ? (
+        {/* Display posts, profiles, or account administration. */}
+        {profileScreen === "posts" ? (
+          <Posts token={accessToken} />
+        ) : profileScreen === "own" ? (
           <UserProfile
             token={accessToken}
             onOpenAdmin={() => setProfileScreen("admin")}
@@ -112,7 +128,10 @@ function App() {
               Back to My Profile
             </button>
 
-            <PublicProfile key={selectedUsername} username={selectedUsername} />
+            <PublicProfile
+              key={selectedUsername}
+              username={selectedUsername}
+            />
           </>
         )}
       </main>

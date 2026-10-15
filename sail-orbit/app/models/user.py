@@ -1,11 +1,15 @@
 """User database model for SAIL Orbit."""
 
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models import Base
+
+if TYPE_CHECKING:
+    from app.models.post import Post
 
 
 class User(Base):
@@ -64,4 +68,10 @@ class User(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+
+    # Access posts authored by this user.
+    posts: Mapped[list["Post"]] = relationship(
+        "Post",
+        back_populates="author",
     )
