@@ -280,7 +280,7 @@ async def test_update_other_users_post_is_forbidden(client):
 
 @pytest.mark.anyio
 async def test_delete_own_post(client):
-    """Verify that an author can delete their post."""
+    """Verify that deleting a post preserves it with redacted content."""
 
     headers = await register_and_login(client)
     post = await create_test_post(client, headers)
@@ -292,9 +292,12 @@ async def test_delete_own_post(client):
 
     assert response.status_code == 204
 
-    # The deleted post must no longer be retrievable.
+    # The deleted post remains accessible with its content hidden.
     response = await client.get(f"/posts/{post['id']}")
-    assert response.status_code == 404
+
+    assert response.status_code == 200
+    assert response.json()["content"] == "[Deleted]"
+    assert response.json()["is_deleted"] is True
 
 
 @pytest.mark.anyio

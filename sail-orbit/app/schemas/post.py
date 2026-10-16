@@ -41,7 +41,8 @@ class PostResponse(BaseModel):
     id: int
     author_id: int
 
-    # Include the post content and timestamps.
+    # Include the post content, deletion status, and timestamps.
     content: str
+    is_deleted: bool
     created_at: datetime
     updated_at: datetime

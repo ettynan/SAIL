@@ -9,7 +9,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models import Base
 
 if TYPE_CHECKING:
+    from app.models.comment import Comment
     from app.models.post import Post
+    from app.models.reaction import Reaction
 
 
 class User(Base):
@@ -74,4 +76,14 @@ class User(Base):
     posts: Mapped[list["Post"]] = relationship(
         "Post",
         back_populates="author",
+    )
+
+    # Access comments and reactions created by this user.
+    comments: Mapped[list["Comment"]] = relationship(
+        "Comment",
+        back_populates="author",
+    )
+    reactions: Mapped[list["Reaction"]] = relationship(
+        "Reaction",
+        back_populates="user",
     )
