@@ -1,10 +1,13 @@
+
 """Run the SAIL Orbit FastAPI application."""
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
+from app.api.comments import router as comments_router
 from app.api.posts import router as posts_router
+from app.api.reactions import router as reactions_router
 from app.api.users import router as users_router
 
 app = FastAPI(title="SAIL Orbit")
@@ -32,3 +35,9 @@ app.include_router(users_router)
 
 # Register post creation, retrieval, editing, and deletion endpoints.
 app.include_router(posts_router)
+
+# Register comment and reply creation, retrieval, editing, and deletion.
+app.include_router(comments_router)
+
+# Register post Like/Dislike reactions and reaction counts.
+app.include_router(reactions_router)

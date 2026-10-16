@@ -1,3 +1,4 @@
+
 """Define post creation, retrieval, editing, and deletion endpoints for SAIL Orbit."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -13,6 +14,19 @@ from app.services.auth import get_current_user
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
+def serialize_post(post: Post) -> PostResponse:
+    """Return post details while hiding soft-deleted content."""
+
+    return PostResponse(
+        id=post.id,
+        author_id=post.author_id,
+        content="[Deleted]" if post.is_deleted else post.content,
+        is_deleted=post.is_deleted,
+        created_at=post.created_at,
+        updated_at=post.updated_at,
+    )
+
+
 @router.post(
     "",
     response_model=PostResponse,
@@ -25,19 +39,17 @@ def create_post(
 ):
     """Create a post belonging to the authenticated user."""
 
-    # The author is determined by the authenticated access token rather
-    # than accepting an author ID supplied by the client.
+    # Determine authorship from the authenticated access token.
     post = Post(
         author_id=current_user.id,
         content=post_data.content,
     )
 
-    # Save the post and reload database-generated values.
     database.add(post)
     database.commit()
     database.refresh(post)
 
-    return post
+    return serialize_post(post)
 
 
 @router.get("", response_model=list[PostResponse])
@@ -46,8 +58,14 @@ def list_posts(
 ):
     """Return posts ordered from newest to oldest."""
 
-    # Order by creation time and use the post ID to break timestamp ties.
-    return database.query(Post).order_by(Post.created_at.desc(), Post.id.desc()).all()
+    # Include deleted posts to preserve their position in discussions.
+    posts = (
+        database.query(Post)
+        .order_by(Post.created_at.desc(), Post.id.desc())
+        .all()
+    )
+
+    return [serialize_post(post) for post in posts]
 
 
 @router.get("/{post_id}", response_model=PostResponse)
@@ -65,7 +83,7 @@ def get_post(
             detail="Post not found.",
         )
 
-    return post
+    return serialize_post(post)
 
 
 @router.patch("/{post_id}", response_model=PostResponse)
@@ -79,7 +97,7 @@ def update_post(
 
     post = database.get(Post, post_id)
 
-    if post is None:
+    if post is None or post.is_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Post not found.",
@@ -92,13 +110,12 @@ def update_post(
             detail="You cannot edit another user's post.",
         )
 
-    # PostUpdate validates the replacement content before it is saved.
     post.content = post_data.content
 
     database.commit()
     database.refresh(post)
 
-    return post
+    return serialize_post(post)
 
 
 @router.delete(
@@ -110,11 +127,11 @@ def delete_post(
     current_user: User = Depends(get_current_user),
     database: Session = Depends(get_db),
 ):
-    """Allow a post's author to delete their post."""
+    """Soft-delete a post while preserving its discussion history."""
 
     post = database.get(Post, post_id)
 
-    if post is None:
+    if post is None or post.is_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Post not found.",
@@ -127,5 +144,6 @@ def delete_post(
             detail="You cannot delete another user's post.",
         )
 
-    database.delete(post)
+    # Retain the post and its comments instead of removing database records.
+    post.is_deleted = True
     database.commit()
