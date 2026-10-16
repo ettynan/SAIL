@@ -77,7 +77,7 @@ class User(Base):
         "Post",
         back_populates="author",
     )
-    
+
     # Access comments and reactions created by this user.
     comments: Mapped[list["Comment"]] = relationship(
         "Comment",

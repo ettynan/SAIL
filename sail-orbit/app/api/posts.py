@@ -1,4 +1,3 @@
-
 """Define post creation, retrieval, editing, and deletion endpoints for SAIL Orbit."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -59,11 +58,7 @@ def list_posts(
     """Return posts ordered from newest to oldest."""
 
     # Include deleted posts to preserve their position in discussions.
-    posts = (
-        database.query(Post)
-        .order_by(Post.created_at.desc(), Post.id.desc())
-        .all()
-    )
+    posts = database.query(Post).order_by(Post.created_at.desc(), Post.id.desc()).all()
 
     return [serialize_post(post) for post in posts]
 

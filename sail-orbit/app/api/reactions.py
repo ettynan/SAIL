@@ -1,4 +1,3 @@
-
 """Define post Like/Dislike reaction endpoints for SAIL Orbit."""
 
 from fastapi import APIRouter, Depends, HTTPException

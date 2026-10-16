@@ -1,4 +1,3 @@
-
 """Database tests for SAIL Orbit post reactions.
 
 These tests verify the PostgreSQL reaction schema, constraints,
@@ -7,11 +6,10 @@ indexes, and the soft-deletion column added to posts.
 
 import pytest
 from pydantic import ValidationError
-
-from app.schemas.reaction import ReactionCounts, ReactionCreate
 from sqlalchemy import inspect
 
 from app.extensions import SessionLocal
+from app.schemas.reaction import ReactionCounts, ReactionCreate
 
 
 def test_reactions_table_and_columns():
@@ -23,12 +21,15 @@ def test_reactions_table_and_columns():
         assert inspector.has_table("reactions")
 
         columns = {
-            column["name"]: column
-            for column in inspector.get_columns("reactions")
+            column["name"]: column for column in inspector.get_columns("reactions")
         }
 
         assert set(columns) == {
-            "id", "user_id", "post_id", "reaction_type", "created_at",
+            "id",
+            "user_id",
+            "post_id",
+            "reaction_type",
+            "created_at",
         }
 
         assert columns["user_id"]["nullable"] is False
@@ -92,8 +93,7 @@ def test_reaction_indexes():
         inspector = inspect(database.get_bind())
 
         indexes = {
-            tuple(index["column_names"])
-            for index in inspector.get_indexes("reactions")
+            tuple(index["column_names"]) for index in inspector.get_indexes("reactions")
         }
 
         assert ("user_id",) in indexes
@@ -117,10 +117,7 @@ def test_posts_soft_deletion_column():
     with SessionLocal() as database:
         inspector = inspect(database.get_bind())
 
-        columns = {
-            column["name"]: column
-            for column in inspector.get_columns("posts")
-        }
+        columns = {column["name"]: column for column in inspector.get_columns("posts")}
 
         assert "is_deleted" in columns
         assert columns["is_deleted"]["nullable"] is False

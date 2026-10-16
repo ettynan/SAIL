@@ -1,4 +1,3 @@
-
 """Database tests for SAIL Orbit comments and replies.
 
 These tests verify the PostgreSQL schema, foreign keys, indexes,
@@ -7,11 +6,10 @@ and deletion constraints created by the comments migration.
 
 import pytest
 from pydantic import ValidationError
-
-from app.schemas.comment import CommentCreate, CommentUpdate
 from sqlalchemy import inspect
 
 from app.extensions import SessionLocal
+from app.schemas.comment import CommentCreate, CommentUpdate
 
 
 def test_comments_table_and_columns():
@@ -23,13 +21,18 @@ def test_comments_table_and_columns():
         assert inspector.has_table("comments")
 
         columns = {
-            column["name"]: column
-            for column in inspector.get_columns("comments")
+            column["name"]: column for column in inspector.get_columns("comments")
         }
 
         assert set(columns) == {
-            "id", "post_id", "author_id", "parent_id",
-            "content", "created_at", "updated_at", "is_deleted",
+            "id",
+            "post_id",
+            "author_id",
+            "parent_id",
+            "content",
+            "created_at",
+            "updated_at",
+            "is_deleted",
         }
 
         assert columns["parent_id"]["nullable"] is True
@@ -65,8 +68,7 @@ def test_comment_indexes():
         inspector = inspect(database.get_bind())
 
         indexes = {
-            tuple(index["column_names"])
-            for index in inspector.get_indexes("comments")
+            tuple(index["column_names"]) for index in inspector.get_indexes("comments")
         }
 
         assert ("post_id",) in indexes
@@ -83,7 +85,6 @@ def test_comment_foreign_keys_do_not_cascade():
         for foreign_key in inspector.get_foreign_keys("comments"):
             options = foreign_key.get("options") or {}
             assert options.get("ondelete", "").upper() != "CASCADE"
-
 
 
 def test_create_comment_with_valid_content():

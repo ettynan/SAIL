@@ -1,4 +1,3 @@
-
 """Run the SAIL Orbit FastAPI application."""
 
 from fastapi import FastAPI

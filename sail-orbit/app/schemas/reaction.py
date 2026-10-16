@@ -1,4 +1,3 @@
-
 """Pydantic schemas for SAIL Orbit post reactions."""
 
 from datetime import datetime

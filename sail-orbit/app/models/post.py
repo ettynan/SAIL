@@ -35,7 +35,7 @@ class Post(Base):
         Text,
         nullable=False,
     )
-    
+
     # Preserve deleted posts without displaying their original content.
     is_deleted: Mapped[bool] = mapped_column(
         Boolean,
@@ -61,7 +61,7 @@ class Post(Base):
         "User",
         back_populates="posts",
     )
-    
+
     # Allow SQLAlchemy to access comments and reactions associated with this post.
     comments: Mapped[list["Comment"]] = relationship(
         "Comment",
