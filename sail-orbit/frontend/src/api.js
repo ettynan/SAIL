@@ -1,256 +1,31 @@
-/**
- * API client for communication with the SAIL Orbit FastAPI backend.
- */
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 /**
- * Retrieve a user's public profile.
+ * SAIL Orbit API exports.
  *
- * @param {string} username - Username of the requested profile.
- * @returns {Promise<Object>} Public profile data returned by FastAPI.
- * @throws {Error} If the API request returns an unsuccessful response.
+ * API implementations are organized by feature in src/api/.
  */
-export async function getPublicProfile(username) {
-  const response = await fetch(
-    `${API_BASE_URL}/users/${encodeURIComponent(username)}`
-  )
 
-  if (!response.ok) {
-    throw new Error(`Profile request failed: ${response.status}`)
-  }
-
-  return response.json()
-}
-
-/**
- * Register a new Orbit user.
- *
- * @param {Object} userData - New account information.
- * @param {string} userData.username - Unique account username.
- * @param {string} userData.email - Account email address.
- * @param {string} userData.password - Account password.
- * @returns {Promise<string>} Registration response from FastAPI.
- * @throws {Error} If registration fails.
- */
-export async function registerUser(userData) {
-  const response = await fetch(`${API_BASE_URL}/auth/register`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Registration failed: ${response.status}`)
-  }
-
-  return response.json()
-}
-
-/**
- * Authenticate an existing Orbit user.
- *
- * @param {string} username - Account username.
- * @param {string} password - Account password.
- * @returns {Promise<{access_token: string, token_type: string}>}
- *   JWT authentication response from FastAPI.
- * @throws {Error} If authentication fails.
- */
-export async function loginUser(username, password) {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ username, password }),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Login failed: ${response.status}`)
-  }
-
-  return response.json()
-}
-
-/**
- * Retrieve the authenticated user's profile.
- *
- * @param {string} token - JWT access token.
- * @returns {Promise<Object>} Authenticated user's profile.
- * @throws {Error} If the request fails.
- */
-export async function getOwnProfile(token) {
-  const response = await fetch(`${API_BASE_URL}/users/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error(`Profile request failed: ${response.status}`)
-  }
-
-  return response.json()
-}
-
-/**
- * Update the authenticated user's biography.
- *
- * @param {string} token - JWT access token.
- * @param {string|null} bio - Updated biography.
- * @returns {Promise<Object>} Updated profile.
- * @throws {Error} If the update fails.
- */
-export async function updateOwnProfile(token, bio) {
-  const response = await fetch(`${API_BASE_URL}/users/me`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ bio }),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Profile update failed: ${response.status}`)
-  }
-
-  return response.json()
-}
-
-/**
- * Activate or deactivate a user account.
- *
- * @param {string} token - Administrator JWT access token.
- * @param {string} username - Account username.
- * @param {boolean} isActive - Requested account status.
- * @returns {Promise<Object>} Updated account status.
- * @throws {Error} If the operation fails.
- */
-export async function updateUserStatus(token, username, isActive) {
-  const response = await fetch(
-    `${API_BASE_URL}/users/${encodeURIComponent(username)}/status`,
-    {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ is_active: isActive }),
-    }
-  )
-
-  if (!response.ok) {
-    throw new Error(`Account status update failed: ${response.status}`)
-  }
-
-  return response.json()
-}
-
-
-/**
- * Create a post for the authenticated user.
- *
- * @param {string} token - JWT access token.
- * @param {string} content - Text content of the new post.
- * @returns {Promise<Object>} Newly created post.
- * @throws {Error} If post creation fails.
- */
-export async function createPost(token, content) {
-  const response = await fetch(`${API_BASE_URL}/posts`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ content }),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Post creation failed: ${response.status}`)
-  }
-
-  return response.json()
-}
-
-/**
- * Retrieve all posts, ordered from newest to oldest by the backend.
- *
- * @returns {Promise<Array<Object>>} List of posts.
- * @throws {Error} If the request fails.
- */
-export async function getPosts() {
-  const response = await fetch(`${API_BASE_URL}/posts`)
-
-  if (!response.ok) {
-    throw new Error(`Post list request failed: ${response.status}`)
-  }
-
-  return response.json()
-}
-
-/**
- * Retrieve a single post by its ID.
- *
- * @param {number} postId - ID of the requested post.
- * @returns {Promise<Object>} Requested post.
- * @throws {Error} If the request fails.
- */
-export async function getPost(postId) {
-  const response = await fetch(`${API_BASE_URL}/posts/${postId}`)
-
-  if (!response.ok) {
-    throw new Error(`Post request failed: ${response.status}`)
-  }
-
-  return response.json()
-}
-
-/**
- * Update a post belonging to the authenticated user.
- *
- * @param {string} token - JWT access token.
- * @param {number} postId - ID of the post to update.
- * @param {string} content - Replacement post content.
- * @returns {Promise<Object>} Updated post.
- * @throws {Error} If the update fails.
- */
-export async function updatePost(token, postId, content) {
-  const response = await fetch(`${API_BASE_URL}/posts/${postId}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ content }),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Post update failed: ${response.status}`)
-  }
-
-  return response.json()
-}
-
-/**
- * Delete a post belonging to the authenticated user.
- *
- * @param {string} token - JWT access token.
- * @param {number} postId - ID of the post to delete.
- * @returns {Promise<void>} Resolves when the post is deleted.
- * @throws {Error} If deletion fails.
- */
-export async function deletePost(token, postId) {
-  const response = await fetch(`${API_BASE_URL}/posts/${postId}`, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error(`Post deletion failed: ${response.status}`)
-  }
-}
+export { registerUser, loginUser } from './api/auth'
+export {
+  getPublicProfile,
+  getOwnProfile,
+  updateOwnProfile,
+  updateUserStatus,
+} from './api/users'
+export {
+  createPost,
+  getPosts,
+  getPost,
+  updatePost,
+  deletePost,
+} from './api/posts'
+export {
+  createComment,
+  getComments,
+  updateComment,
+  deleteComment,
+} from './api/comments'
+export {
+  setReaction,
+  getReactionCounts,
+} from './api/reactions'
