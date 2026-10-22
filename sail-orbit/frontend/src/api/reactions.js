@@ -6,6 +6,28 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 /**
+ * Retrieve the authenticated user's existing reaction to a post.
+ *
+ * @param {string} token - JWT access token.
+ * @param {number} postId - Post ID.
+ * @returns {Promise<Object|null>} Existing reaction or null if none.
+ * @throws {Error} If retrieval fails.
+ */
+export async function getOwnReaction(token, postId) {
+  const response = await fetch(`${API_BASE_URL}/posts/${postId}/reaction`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Own reaction request failed: ${response.status}`)
+  }
+
+  return response.json()
+}
+
+/**
  * Add, switch, or remove a Like/Dislike reaction.
  *
  * Selecting the same reaction again removes it.

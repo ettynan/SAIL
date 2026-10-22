@@ -2,6 +2,8 @@
 /**
  * Display posts and allow authenticated users to create, edit, and delete
  * their own posts.
+ *
+ * Include threaded comments and Like/Dislike reactions for each post.
  */
 
 import { useEffect, useState } from "react";
@@ -12,6 +14,9 @@ import {
   getPosts,
   updatePost,
 } from "../api";
+
+import Comments from "./Comments";
+import Reactions from "./Reactions";
 
 /**
  * Render the post feed and post management controls.
@@ -242,6 +247,18 @@ function Posts({ token }) {
                 )}
               </div>
             )}
+
+            {/* Allow users to react to posts and view reaction totals. */}
+            {!post.is_deleted && (
+              <Reactions postId={post.id} token={token} />
+            )}
+
+            {/* Preserve discussion history, including deleted comments. */}
+            <Comments
+              postId={post.id}
+              token={token}
+              currentUserId={currentUserId}
+            />
           </article>
         ))}
       </div>
