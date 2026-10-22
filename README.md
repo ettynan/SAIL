@@ -283,15 +283,23 @@ The documentation contains the commands, configuration, verification steps, trou
 
 ### Orbit
 
+### Orbit
+
 - [x] Local development environment
-- [x] PostgreSQL development database
-- [x] SQLAlchemy database connectivity
-- [x] Alembic migration configuration
-- [x] Initial user database model
-- [ ] Authentication and authorization
-- [ ] Posts, comments, and reactions
+- [x] PostgreSQL database and SQLAlchemy integration
+- [x] Alembic migrations
+- [x] User registration and authentication
+- [x] User profiles and account administration
+- [x] Role-based permissions
+- [x] Post creation, retrieval, editing, and deletion
+- [x] Comments and nested replies
+- [x] Like/Dislike reactions
+- [x] React frontend integration
+- [x] Automated frontend testing (65 passing tests)
+- [x] Comment and reaction API integration testing (16 passing tests)
 - [ ] Relationship model
 - [ ] Relationship-based visibility
+- [ ] Chronological feed
 - [ ] Automated workload generation
 - [ ] Container deployment to SAIL
 

@@ -26,6 +26,7 @@ export {
   deleteComment,
 } from './api/comments'
 export {
+  getOwnReaction,
   setReaction,
   getReactionCounts,
 } from './api/reactions'

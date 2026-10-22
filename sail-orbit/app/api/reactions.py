@@ -15,6 +15,39 @@ from app.services.auth import get_current_user
 router = APIRouter(prefix="/posts", tags=["Reactions"])
 
 
+@router.get(
+    "/{post_id}/reaction",
+    response_model=ReactionResponse | None,
+)
+def get_own_reaction(
+    post_id: int,
+    current_user: User = Depends(get_current_user),
+    database: Session = Depends(get_db),
+):
+    """Return the authenticated user's existing reaction to a post."""
+
+    post = database.get(Post, post_id)
+
+    if post is None or post.is_deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Post not found.",
+        )
+
+    # Find the current user's reaction without exposing other users' reactions.
+    reaction = (
+        database.query(Reaction)
+        .filter(
+            Reaction.post_id == post_id,
+            Reaction.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    # Return null when the user has not reacted to this post.
+    return reaction
+
+
 @router.put(
     "/{post_id}/reaction",
     response_model=ReactionResponse | None,
