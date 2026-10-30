@@ -1,9 +1,20 @@
 
-# SAIL Section 9, Steps 6c and 6d
 # Helm chart: prometheus-community/kube-prometheus-stack 92.14.1
 # Planning configuration. Not yet deployed.
 
 prometheus:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - prometheus.sail.test
+    paths:
+      - /
+    pathType: Prefix
+    tls:
+      - secretName: sail-monitoring-tls
+        hosts:
+          - prometheus.sail.test
   prometheusSpec:
     replicas: 1
     resources:
@@ -26,6 +37,28 @@ prometheus:
               storage: 20Gi
 
 grafana:
+  admin:
+    existingSecret: sail-grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  grafana.ini:
+    auth.anonymous:
+      enabled: false
+    users:
+      allow_sign_up: false
+    auth.basic:
+      enabled: true
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - grafana.sail.test
+    path: /
+    pathType: Prefix
+    tls:
+      - secretName: sail-monitoring-tls
+        hosts:
+          - grafana.sail.test
   replicas: 1
   resources:
     requests:
@@ -43,6 +76,18 @@ grafana:
     size: 2Gi
 
 alertmanager:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - alertmanager.sail.test
+    paths:
+      - /
+    pathType: Prefix
+    tls:
+      - secretName: sail-monitoring-tls
+        hosts:
+          - alertmanager.sail.test
   alertmanagerSpec:
     replicas: 1
     resources:
