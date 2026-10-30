@@ -38,3 +38,6 @@ node_modules/
 
 # Vite local files
 *.local
+
+# Local TLS certificates and private keys
+monitoring/certs/
