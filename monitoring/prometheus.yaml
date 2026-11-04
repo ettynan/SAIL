@@ -1,7 +1,6 @@
 
 # Helm chart: prometheus-community/kube-prometheus-stack 92.14.1
-# Planning configuration. Not yet deployed.
-
+# SAIL monitoring Helm configuration.
 prometheus:
   ingress:
     enabled: true
@@ -32,6 +31,9 @@ prometheus:
           storageClassName: sail-monitoring-local
           accessModes:
             - ReadWriteOnce
+          selector:
+            matchLabels:
+              sail.workload: prometheus
           resources:
             requests:
               storage: 20Gi
@@ -74,6 +76,25 @@ grafana:
     accessModes:
       - ReadWriteOnce
     size: 2Gi
+  
+  initChownData:
+    enabled: false
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 472
+    runAsGroup: 472
+    fsGroup: null
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    privileged: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
 
 alertmanager:
   ingress:
