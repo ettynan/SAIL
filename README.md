@@ -53,8 +53,11 @@ flowchart TB
 
     ADMIN --> CLUSTER
 
-    P1 --- P2
-    P2 --- P3
+    SWITCH["Ethernet Switch"]
+
+    SWITCH --- P1
+    SWITCH --- P2
+    SWITCH --- P3
 
     P1 --> SSD
 
