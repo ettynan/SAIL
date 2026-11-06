@@ -27,18 +27,28 @@ It provides a controlled environment for deploying realistic workloads, observin
 
 ## Architecture
 
+
 ```mermaid
 flowchart TB
-    ADMIN["Administration Computer<br/>kubectl • Git • Automation • AI"]
+    ADMIN["Administration Workstation<br/>kubectl • Git • Cluster Management"]
 
     subgraph CLUSTER["SAIL k3s Cluster"]
-        P1["pi-node-1<br/>Control Plane + Worker"]
+        P1["pi-node-1<br/>Control Plane + Worker<br/>NFS Server"]
         P2["pi-node-2<br/>Worker"]
         P3["pi-node-3<br/>Worker"]
+
+        subgraph OBS["Monitoring & Logging"]
+            PROM["Prometheus"]
+            GRAF["Grafana"]
+            ALERT["Alertmanager"]
+            LOKI["Loki"]
+            ALLOY["Grafana Alloy<br/>Container & System Logs"]
+        end
     end
 
     SSD["1 TB External SSD<br/>NFS Persistent Storage"]
-    ORBIT["Orbit<br/>Application Workload"]
+
+    ORBIT["Orbit<br/>Planned Cluster Deployment"]
     DB[("PostgreSQL")]
 
     ADMIN --> CLUSTER
@@ -47,9 +57,16 @@ flowchart TB
     P2 --- P3
 
     P1 --> SSD
-    CLUSTER --> ORBIT
+
+    ALLOY --> LOKI
+    PROM --> GRAF
+    PROM --> ALERT
+    LOKI --> GRAF
+
+    CLUSTER -.-> ORBIT
     ORBIT --> DB
 ```
+
 
 ### Cluster
 
@@ -157,6 +174,7 @@ SAIL's observability environment is designed to provide visibility into the Rasp
 | **Grafana** | Dashboards and visualization |
 | **Loki** | Centralized log collection and searching |
 | **OpenTelemetry** | Application telemetry and tracing |
+|**Grafana Alloy**	| Kubernetes container and systemd journal log collection
 
 A normal operating baseline will provide a reference for comparing infrastructure and application behavior during later operational and security scenarios.
 
@@ -305,8 +323,11 @@ The documentation contains the commands, configuration, verification steps, trou
 
 ### SAIL Operations
 
-- [ ] Monitoring and observability stack
-- [ ] Centralized logging
+- [x] Prometheus, Grafana, and Alertmanager deployment
+- [x] Loki centralized logging
+- [x] Grafana Alloy Kubernetes container-log collection
+- [x] Grafana Alloy systemd journal collection across all three nodes
+- [x] Grafana Loki integration and log-query verification
 - [ ] Runtime security monitoring
 - [ ] Vulnerability scanning
 - [ ] Infrastructure automation
@@ -333,4 +354,4 @@ flowchart LR
 ```
 
 > [!NOTE]
-> **SAIL is under active development.** The Kubernetes infrastructure and persistent-storage foundation are operational. Current development is focused on Orbit before progressing into observability, security tooling, automation, AI-assisted operations, and integrated investigation scenarios.
+> **SAIL is under active development.** The three-node Kubernetes infrastructure, persistent storage, monitoring, and centralized logging are operational. Remaining work includes completing the Orbit application, deploying it to the cluster, implementing security tooling, infrastructure automation, AI-assisted operations, and integrated investigation scenarios.
