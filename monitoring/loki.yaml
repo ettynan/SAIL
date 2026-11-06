@@ -1,7 +1,5 @@
 
-# SAIL Section 9, Steps 6c and 6d
 # Helm chart: grafana/loki 7.5.0
-# Draft configuration. Storage compatibility requires validation.
 
 deploymentMode: SingleBinary
 
@@ -20,6 +18,9 @@ singleBinary:
     accessModes:
       - ReadWriteOnce
     size: 20Gi
+    selector:
+      matchLabels:
+        sail.workload: loki
 
 read:
   replicas: 0
@@ -49,3 +50,10 @@ loki:
         index:
           prefix: index_
           period: 24h
+
+# Optional components disabled for SAIL's resource-limited cluster
+chunksCache:
+  enabled: false
+
+resultsCache:
+  enabled: false
