@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sail-discord-formatter
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sail-discord-formatter
+  template:
+    metadata:
+      labels:
+        app: sail-discord-formatter
+    spec:
+      containers:
+        - name: formatter
+          image: python:3.12-alpine
+          command:
+            - python
+            - /app/discord-formatter.py
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DISCORD_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  name: sail-discord-webhook
+                  key: webhook-url
+          volumeMounts:
+            - name: formatter-code
+              mountPath: /app
+              readOnly: true
+      volumes:
+        - name: formatter-code
+          configMap:
+            name: sail-discord-formatter-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sail-discord-formatter
+  namespace: monitoring
+spec:
+  selector:
+    app: sail-discord-formatter
+  ports:
+    - port: 8080
+      targetPort: 8080

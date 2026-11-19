@@ -41,3 +41,11 @@ node_modules/
 
 # Local TLS certificates and private keys
 monitoring/certs/
+
+# Grafana database backups
+backups/grafana/*.db
+backups/grafana/*.sqlite
+backups/grafana/*.sqlite3
+backups/grafana/*.db-*
+backups/grafana/*.sqlite-*
+backups/grafana/*.sqlite3-*
