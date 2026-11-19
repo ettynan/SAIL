@@ -1,0 +1,39 @@
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: sail-ssd-capacity-alerts
+  namespace: monitoring
+  labels:
+    release: sail-monitoring
+spec:
+  groups:
+    - name: sail.storage
+      rules:
+        - alert: SAILSSDLowSpace
+          expr: |
+            100 * (
+              node_filesystem_avail_bytes{instance="10.0.0.20:9100",mountpoint="/mnt/sail-storage"}
+              /
+              node_filesystem_size_bytes{instance="10.0.0.20:9100",mountpoint="/mnt/sail-storage"}
+            ) < 25
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "SAIL SSD below 25% available capacity"
+            description: "Available SSD capacity has remained below 25% for five minutes."
+
+        - alert: SAILSSDCriticalSpace
+          expr: |
+            100 * (
+              node_filesystem_avail_bytes{instance="10.0.0.20:9100",mountpoint="/mnt/sail-storage"}
+              /
+              node_filesystem_size_bytes{instance="10.0.0.20:9100",mountpoint="/mnt/sail-storage"}
+            ) < 10
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "SAIL SSD below 10% available capacity"
+            description: "Available SSD capacity has remained below 10% for five minutes."

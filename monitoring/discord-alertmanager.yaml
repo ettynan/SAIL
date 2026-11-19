@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: sail-discord-alerts
+  namespace: monitoring
+spec:
+  route:
+    receiver: sail-discord
+    groupBy:
+      - alertname
+      - test
+    groupWait: 0s
+    groupInterval: 5s
+    repeatInterval: 1h
+    matchers:
+      - name: alertname
+        matchType: =~
+        value: "SAILSSDLowSpace|SAILSSDCriticalSpace"
+  receivers:
+    - name: sail-discord
+      webhookConfigs:
+        - url: http://sail-discord-formatter.monitoring.svc.cluster.local:8080/alerts
+          sendResolved: true
